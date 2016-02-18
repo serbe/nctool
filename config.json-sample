@@ -1,0 +1,12 @@
+{
+  "nnmclub": {
+    "login": "Login",
+    "password": "Password"
+  },
+  "postgresql": {
+    "user": "Pquser",
+    "password": "Pqpassword",
+    "dbname": "rssdb",
+    "sslmode": "disable"
+  }
+}
