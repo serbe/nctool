@@ -14,7 +14,7 @@ import (
 func appInit() (*App, error) {
 	conf, err := getConfig()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 	dbConnect, err := gorm.Open("postgres", fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", conf.Pq.User, conf.Pq.Password, conf.Pq.Dbname, conf.Pq.Sslmode))
 	if err != nil {
