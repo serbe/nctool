@@ -32,7 +32,7 @@ func (a *App) get() error {
 		}
 	}
 	if i > 0 {
-		log.Println("Adding ", i, " new films")
+		log.Println("Adding", i, "new films")
 	} else {
 		log.Println("No adding new films")
 	}
