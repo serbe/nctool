@@ -18,6 +18,7 @@ var (
 	commands []string = []string{
 		"get",
 		"update",
+		"name",
 	}
 )
 

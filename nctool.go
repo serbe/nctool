@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/jinzhu/gorm"
 	"github.com/serbe/ncp"
@@ -59,6 +60,22 @@ func (a *App) update() error {
 	return nil
 }
 
+func (a *App) name() error {
+	films, err := a.getWithTorrents()
+	if err != nil {
+		return err
+	}
+	for _, film := range films {
+		if film.Name == strings.ToUpper(film.Name) {
+			lowerName := a.getLowerName(film)
+			if lowerName != "" {
+				a.updateName(film.ID, lowerName)
+			}
+		}
+	}
+	return nil
+}
+
 func main() {
 	args := os.Args
 	if contain(args, "help") {
@@ -68,7 +85,8 @@ func main() {
 Commands:
 	help   показать справку
 	get    получить новые фильмы
-	update обновление фильмов`)
+	update обновление информации фильмов
+	name   поиск и исправление имен фильмов`)
 		os.Exit(0)
 	}
 	if containCommand(args) == false {
@@ -89,6 +107,12 @@ Commands:
 		log.Println("Start update topics")
 		err := app.update()
 		log.Println("End update topics")
+		exit(err)
+	}
+	if contain(args, "name") {
+		log.Println("Start fix names")
+		err := app.name()
+		log.Println("End fix names")
 		exit(err)
 	}
 }

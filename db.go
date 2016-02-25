@@ -36,17 +36,21 @@ func appInit() (*App, error) {
 }
 
 func (a *App) createFilm(film ncp.Film) error {
-	return a.db.Create(&film).Error
+	return a.db.Model(ncp.Film{}).Create(&film).Error
 }
 
 func (a *App) getFilmByHref(href string) (ncp.Film, error) {
 	var film ncp.Film
-	err := a.db.Where("href = ?", href).First(&film).Error
+	err := a.db.Model(ncp.Film{}).Where("href = ?", href).First(&film).Error
 	return film, err
 }
 
 func (a *App) updateFilm(id int64, f ncp.Film) error {
-	return a.db.Where("id = ?", id).UpdateColumns(ncp.Film{NNM: f.NNM, Seeders: f.Seeders, Leechers: f.Leechers, Torrent: f.Torrent}).Error
+	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumns(ncp.Film{NNM: f.NNM, Seeders: f.Seeders, Leechers: f.Leechers, Torrent: f.Torrent}).Error
+}
+
+func (a *App) updateName(id int64, name string) error {
+	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumn("name", name).Error
 }
 
 func (a *App) getWithTorrents() ([]ncp.Film, error) {
@@ -59,9 +63,15 @@ func (a *App) getWithTorrents() ([]ncp.Film, error) {
 
 func (a *App) getFilmName(film ncp.Film) string {
 	var films []ncp.Film
-	a.db.Where("upper(name) = ? and year = ?", strings.ToUpper(film.Name), film.Year).Find(&films)
+	a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ?", strings.ToUpper(film.Name), film.Year).Find(&films)
 	if len(films) > 0 {
 		return films[0].Name
 	}
 	return ""
+}
+
+func (a *App) getLowerName(film ncp.Film) string {
+	var f ncp.Film
+	a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(film.Name), film.Year, strings.ToUpper(film.Name)).First(&f)
+	return f.Name
 }
