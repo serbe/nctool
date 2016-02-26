@@ -11,17 +11,18 @@ import (
 )
 
 var (
-	urls []string = []string{
+	urls = []string{
 		"http://nnm-club.me/forum/viewforum.php?f=218",
 		"http://nnm-club.me/forum/viewforum.php?f=270",
 	}
-	commands []string = []string{
+	commands = []string{
 		"get",
 		"update",
 		"name",
 	}
 )
 
+// App struct variables
 type App struct {
 	db  gorm.DB
 	net *ncp.NCp

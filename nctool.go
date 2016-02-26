@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -79,7 +80,7 @@ func (a *App) name() error {
 func main() {
 	args := os.Args
 	if contain(args, "help") {
-		log.Println(`Usage:
+		fmt.Println(`Usage:
 	nctool COMMAND
 
 Commands:
@@ -90,7 +91,7 @@ Commands:
 		os.Exit(0)
 	}
 	if containCommand(args) == false {
-		log.Println(`comand not found: use "nctool help"`)
+		fmt.Println(`comand not found: use "nctool help"`)
 		os.Exit(1)
 	}
 	app, err := appInit()
