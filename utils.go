@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
+	// "github.com/serbe/cinemate"
 	"github.com/serbe/ncp"
 )
 
@@ -19,6 +20,7 @@ var (
 		"get",
 		"update",
 		"name",
+		// "rating",
 	}
 )
 
@@ -26,6 +28,7 @@ var (
 type App struct {
 	db  gorm.DB
 	net *ncp.NCp
+	// cc  *cinemate.API
 }
 
 type config struct {
@@ -39,6 +42,9 @@ type config struct {
 		Dbname   string `json:"dbname"`
 		Sslmode  string `json:"sslmode"`
 	} `json:"postgresql"`
+	Cc struct {
+		API string `json:"api"`
+	} `json:"cinemate"`
 }
 
 func getConfig() (config, error) {

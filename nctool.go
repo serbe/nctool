@@ -77,6 +77,19 @@ func (a *App) name() error {
 	return nil
 }
 
+// func (a *App) rating() error {
+// 	films, err := a.getWithTorrents()
+// 	if err != nil {
+// 		return err
+// 	}
+// 	for _, film := range films {
+// 		if film.Kinopoisk == 0 || film.IMDb == 0 {
+// 			a.getRating(film)
+// 		}
+// 	}
+// 	return nil
+// }
+
 func main() {
 	args := os.Args
 	if contain(args, "help") {
@@ -88,6 +101,7 @@ Commands:
 	get    получить новые фильмы
 	update обновление информации фильмов
 	name   поиск и исправление имен фильмов`)
+		// rating получение рейтинга Кинопоиска и IMDb
 		os.Exit(0)
 	}
 	if containCommand(args) == false {
@@ -116,4 +130,10 @@ Commands:
 		log.Println("End fix names")
 		exit(err)
 	}
+	// if contain(args, "rating") {
+	// 	log.Println("Start get ratings")
+	// 	err := app.rating()
+	// 	log.Println("End get ratings")
+	// 	exit(err)
+	// }
 }

@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	// "strconv"
 	"strings"
+	// "time"
 
 	"github.com/jinzhu/gorm"
+	// "github.com/serbe/cinemate"
 	"github.com/serbe/ncp"
 	// pq need to gorm
 	_ "github.com/lib/pq"
@@ -26,12 +29,14 @@ func appInit() (*App, error) {
 	dbConnect.DB().SetMaxIdleConns(10)
 	dbConnect.DB().SetMaxOpenConns(100)
 	dbConnect.AutoMigrate(&ncp.Film{})
-	// dbConnect.LogMode(true)
+	dbConnect.LogMode(true)
 	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password)
 	if err != nil {
 		log.Println("net init ", err)
 		return &App{}, err
 	}
+	// cinemateClient := cinemate.Init(conf.Cc.API)
+	// return &App{db: dbConnect, net: inetConnect, cc: cinemateClient}, nil
 	return &App{db: dbConnect, net: inetConnect}, nil
 }
 
@@ -51,6 +56,10 @@ func (a *App) updateFilm(id int64, f ncp.Film) error {
 
 func (a *App) updateName(id int64, name string) error {
 	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumn("name", name).Error
+}
+
+func (a *App) updateRating(id int64, kinopoisk float64, imdb float64) error {
+	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumns(ncp.Film{Kinopoisk: kinopoisk, IMDb: imdb}).Error
 }
 
 func (a *App) getWithTorrents() ([]ncp.Film, error) {
@@ -75,3 +84,30 @@ func (a *App) getLowerName(film ncp.Film) string {
 	a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(film.Name), film.Year, strings.ToUpper(film.Name)).First(&f)
 	return f.Name
 }
+
+// http://m.kinopoisk.ru/search/%F1%E0%EC%FB%E9+%EB%F3%F7%F8%E8%E9+%E4%E5%ED%FC+2015/
+// func (a *App) getRating(film ncp.Film) error {
+// 	movies, err := a.cc.GetMovieSearch(film.Name + " " + strconv.FormatInt(film.Year, 10))
+// 	if err != nil {
+// 		movies, err = a.cc.GetMovieSearch(film.EngName + " " + strconv.FormatInt(film.Year, 10))
+// 		if err != nil {
+// 			movies, err = a.cc.GetMovieSearch(film.Name)
+// 			if err != nil {
+// 				movies, err = a.cc.GetMovieSearch(film.EngName)
+// 				if err != nil {
+// 					return err
+// 				}
+// 			}
+// 		}
+// 	}
+// 	if len(movies) == 0 {
+// 		return fmt.Errorf("film not found in cinematedb")
+// 	}
+// 	time.Sleep(time.Millisecond * 1000)
+// 	movie, err := a.cc.GetMovie(movies[0].ID)
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return a.updateRating(film.ID, movie.Kinopoisk.Rating, movie.Imdb.Rating)
+// }
