@@ -93,14 +93,7 @@ func (a *App) getRating(film ncp.Film) error {
 	var kp kpp.KP
 	kp, err := kpp.GetRating(film.Name, film.Year)
 	if err != nil {
-		if film.EngName != "" {
-			kp, err = kpp.GetRating(film.EngName, film.Year)
-			if err != nil {
-				return fmt.Errorf("Rating no found")
-			}
-		} else {
-			return fmt.Errorf("Rating no found")
-		}
+		return fmt.Errorf("Rating no found")
 	}
 	if kp.Kinopoisk == 0 && kp.IMDb == 0 {
 		return fmt.Errorf("Rating no found")
