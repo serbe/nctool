@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	// "github.com/serbe/cinemate"
 	"github.com/serbe/ncp"
 )
 
@@ -20,7 +19,7 @@ var (
 		"get",
 		"update",
 		"name",
-		// "rating",
+		"rating",
 	}
 )
 
@@ -28,7 +27,6 @@ var (
 type App struct {
 	db  gorm.DB
 	net *ncp.NCp
-	// cc  *cinemate.API
 }
 
 type config struct {
@@ -91,8 +89,8 @@ func (a *App) checkName(film ncp.Film) ncp.Film {
 	if film.Name != strings.ToUpper(film.Name) {
 		return film
 	}
-	name := a.getFilmName(film)
-	if name != "" {
+	name, err := a.getFilmName(film)
+	if err == nil {
 		film.Name = name
 		return film
 	}

@@ -8,7 +8,7 @@ import (
 	// "time"
 
 	"github.com/jinzhu/gorm"
-	// "github.com/serbe/cinemate"
+	"github.com/serbe/kpp"
 	"github.com/serbe/ncp"
 	// pq need to gorm
 	_ "github.com/lib/pq"
@@ -29,14 +29,12 @@ func appInit() (*App, error) {
 	dbConnect.DB().SetMaxIdleConns(10)
 	dbConnect.DB().SetMaxOpenConns(100)
 	dbConnect.AutoMigrate(&ncp.Film{})
-	dbConnect.LogMode(true)
+	// dbConnect.LogMode(true)
 	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password)
 	if err != nil {
 		log.Println("net init ", err)
 		return &App{}, err
 	}
-	// cinemateClient := cinemate.Init(conf.Cc.API)
-	// return &App{db: dbConnect, net: inetConnect, cc: cinemateClient}, nil
 	return &App{db: dbConnect, net: inetConnect}, nil
 }
 
@@ -58,8 +56,8 @@ func (a *App) updateName(id int64, name string) error {
 	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumn("name", name).Error
 }
 
-func (a *App) updateRating(id int64, kinopoisk float64, imdb float64) error {
-	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumns(ncp.Film{Kinopoisk: kinopoisk, IMDb: imdb}).Error
+func (a *App) updateRating(film ncp.Film, kinopoisk float64, imdb float64) error {
+	return a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ?", strings.ToUpper(film.Name), film.Year).UpdateColumns(ncp.Film{Kinopoisk: kinopoisk, IMDb: imdb}).Error
 }
 
 func (a *App) getWithTorrents() ([]ncp.Film, error) {
@@ -70,44 +68,42 @@ func (a *App) getWithTorrents() ([]ncp.Film, error) {
 	return films, err
 }
 
-func (a *App) getFilmName(film ncp.Film) string {
+func (a *App) getFilmName(film ncp.Film) (string, error) {
 	var films []ncp.Film
 	a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ?", strings.ToUpper(film.Name), film.Year).Find(&films)
 	if len(films) > 0 {
-		return films[0].Name
+		return films[0].Name, nil
 	}
-	return ""
+	return "", fmt.Errorf("Name not found")
 }
 
-func (a *App) getLowerName(film ncp.Film) string {
+func (a *App) getLowerName(film ncp.Film) (string, error) {
 	var f ncp.Film
-	a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(film.Name), film.Year, strings.ToUpper(film.Name)).First(&f)
-	return f.Name
+	err := a.db.Model(ncp.Film{}).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(film.Name), film.Year, strings.ToUpper(film.Name)).First(&f).Error
+	return f.Name, err
 }
 
-// http://m.kinopoisk.ru/search/%F1%E0%EC%FB%E9+%EB%F3%F7%F8%E8%E9+%E4%E5%ED%FC+2015/
-// func (a *App) getRating(film ncp.Film) error {
-// 	movies, err := a.cc.GetMovieSearch(film.Name + " " + strconv.FormatInt(film.Year, 10))
-// 	if err != nil {
-// 		movies, err = a.cc.GetMovieSearch(film.EngName + " " + strconv.FormatInt(film.Year, 10))
-// 		if err != nil {
-// 			movies, err = a.cc.GetMovieSearch(film.Name)
-// 			if err != nil {
-// 				movies, err = a.cc.GetMovieSearch(film.EngName)
-// 				if err != nil {
-// 					return err
-// 				}
-// 			}
-// 		}
-// 	}
-// 	if len(movies) == 0 {
-// 		return fmt.Errorf("film not found in cinematedb")
-// 	}
-// 	time.Sleep(time.Millisecond * 1000)
-// 	movie, err := a.cc.GetMovie(movies[0].ID)
-// 	if err != nil {
-// 		return err
-// 	}
+func (a *App) getNoRating() ([]ncp.Film, error) {
+	var films []ncp.Film
+	err := a.db.Raw("SELECT name, year FROM films WHERE torrent <> '' AND (kinopoisk = 0 OR imdb = 0) GROUP BY name, year;").Scan(&films).Error
+	return films, err
+}
 
-// 	return a.updateRating(film.ID, movie.Kinopoisk.Rating, movie.Imdb.Rating)
-// }
+func (a *App) getRating(film ncp.Film) error {
+	var kp kpp.KP
+	kp, err := kpp.GetRating(film.Name, film.Year)
+	if err != nil {
+		if film.EngName != "" {
+			kp, err = kpp.GetRating(film.EngName, film.Year)
+			if err != nil {
+				return fmt.Errorf("Rating no found")
+			}
+		} else {
+			return fmt.Errorf("Rating no found")
+		}
+	}
+	if kp.Kinopoisk == 0 && kp.IMDb == 0 {
+		return fmt.Errorf("Rating no found")
+	}
+	return a.updateRating(film, kp.Kinopoisk, kp.IMDb)
+}
