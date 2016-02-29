@@ -91,7 +91,7 @@ func (a *App) getNoRating() ([]ncp.Film, error) {
 
 func (a *App) getRating(film ncp.Film) error {
 	var kp kpp.KP
-	kp, err := kpp.GetRating(film.Name, film.Year)
+	kp, err := kpp.GetRating(film.Name, film.EngName, film.Year)
 	if err != nil {
 		return fmt.Errorf("Rating no found")
 	}
