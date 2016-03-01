@@ -49,7 +49,7 @@ func (a *App) getFilmByHref(href string) (ncp.Film, error) {
 }
 
 func (a *App) updateFilm(id int64, f ncp.Film) error {
-	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumns(ncp.Film{NNM: f.NNM, Seeders: f.Seeders, Leechers: f.Leechers, Torrent: f.Torrent}).Error
+	return a.db.Model(ncp.Film{}).Where("id = ?", id).UpdateColumns(ncp.Film{NNM: f.NNM, Seeders: f.Seeders, Leechers: f.Leechers, Torrent: f.Torrent, Duration: f.Duration}).Error
 }
 
 func (a *App) updateName(id int64, name string) error {

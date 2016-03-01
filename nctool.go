@@ -51,7 +51,7 @@ func (a *App) update() error {
 		topic.Href = film.Href
 		f, err := a.net.ParseTopic(topic)
 		if err == nil {
-			if f.NNM != film.NNM || f.Seeders != film.Seeders || f.Leechers != f.Leechers || f.Torrent != film.Torrent {
+			if f.NNM != film.NNM || f.Seeders != film.Seeders || f.Leechers != f.Leechers || f.Torrent != film.Torrent || f.Duration != film.Duration {
 				a.updateFilm(film.ID, f)
 			}
 		} else {
