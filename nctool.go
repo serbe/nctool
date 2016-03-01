@@ -42,6 +42,7 @@ func (a *App) get() error {
 }
 
 func (a *App) update() error {
+	var i int64
 	films, err := a.getWithTorrents()
 	if err != nil {
 		return err
@@ -52,16 +53,23 @@ func (a *App) update() error {
 		f, err := a.net.ParseTopic(topic)
 		if err == nil {
 			if f.NNM != film.NNM || f.Seeders != film.Seeders || f.Leechers != f.Leechers || f.Torrent != film.Torrent || f.Duration != film.Duration {
+				i++
 				a.updateFilm(film.ID, f)
 			}
 		} else {
 			return err
 		}
 	}
+	if i > 0 {
+		log.Println("Update", i, "films")
+	} else {
+		log.Println("No films update")
+	}
 	return nil
 }
 
 func (a *App) name() error {
+	var i int64
 	films, err := a.getWithTorrents()
 	if err != nil {
 		return err
@@ -70,9 +78,15 @@ func (a *App) name() error {
 		if film.Name == strings.ToUpper(film.Name) {
 			lowerName, err := a.getLowerName(film)
 			if err == nil {
+				i++
 				a.updateName(film.ID, lowerName)
 			}
 		}
+	}
+	if i > 0 {
+		log.Println(i, "name fixed")
+	} else {
+		log.Println("No fixed names")
 	}
 	return nil
 }
