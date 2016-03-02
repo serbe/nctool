@@ -3,9 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	// "strconv"
 	"strings"
-	// "time"
 
 	"github.com/jinzhu/gorm"
 	"github.com/serbe/kpp"

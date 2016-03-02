@@ -8,8 +8,5 @@
     "password": "Pqpassword",
     "dbname": "rssdb",
     "sslmode": "disable"
-  },
-  "cinemate": {
-    "api": "API"
   }
 }
