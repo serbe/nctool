@@ -89,7 +89,7 @@ func (a *App) checkName(ncf ncp.Film) ncp.Film {
 	if ncf.Name != strings.ToUpper(ncf.Name) {
 		return ncf
 	}
-	name, err := a.getFilmName(ncf)
+	name, err := a.getMovieName(ncf)
 	if err == nil {
 		ncf.Name = name
 		return ncf

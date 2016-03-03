@@ -66,25 +66,25 @@ func (a *App) update() error {
 		}
 	}
 	if i > 0 {
-		log.Println("Update", i, "films")
+		log.Println("Update", i, "movies")
 	} else {
-		log.Println("No films update")
+		log.Println("No movies update")
 	}
 	return nil
 }
 
 func (a *App) name() error {
 	var i int64
-	films, err := a.getFilms()
+	movies, err := a.getMovies()
 	if err != nil {
 		return err
 	}
-	for _, film := range films {
-		if film.Name == strings.ToUpper(film.Name) {
-			lowerName, err := a.getLowerName(film)
+	for _, movie := range movies {
+		if movie.Name == strings.ToUpper(movie.Name) {
+			lowerName, err := a.getLowerName(movie)
 			if err == nil {
 				i++
-				a.updateName(film.ID, lowerName)
+				a.updateName(movie.ID, lowerName)
 			}
 		}
 	}

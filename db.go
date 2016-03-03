@@ -13,7 +13,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-// Film all values
+// Movie all values
 // ID            id
 // Name          Название
 // EngName       Английское название
@@ -33,7 +33,7 @@ import (
 // Poster        Ссылка на постер
 // UpdatedAt     Дата обновления записи БД
 // CreatedAt     Дата создания записи БД
-type Film struct {
+type Movie struct {
 	ID          int64     `gorm:"column:id"             db:"id"             sql:"AUTO_INCREMENT"`
 	Name        string    `gorm:"column:name"           db:"name"           sql:"type:text"`
 	EngName     string    `gorm:"column:eng_name"       db:"eng_name"       sql:"type:text"`
@@ -78,7 +78,7 @@ type Film struct {
 // CreatedAt     Дата создания записи БД
 type Torrent struct {
 	ID            int64     `gorm:"column:id"             db:"id"             sql:"AUTO_INCREMENT"`
-	FilmID        int64     `gorm:"column:film_id"        db:"film_id"`
+	MovieID        int64    `gorm:"column:movie_id"       db:"movie_id"`
 	DateCreate    string    `gorm:"column:date_create"    db:"date_create"    sql:"type:text"`
 	Href          string    `gorm:"column:href"           db:"href"           sql:"type:text"`
 	Torrent       string    `gorm:"column:torrent"        db:"torrent"        sql:"type:text"`
@@ -113,7 +113,7 @@ func appInit() (*App, error) {
 	dbConnect.DB().Ping()
 	dbConnect.DB().SetMaxIdleConns(10)
 	dbConnect.DB().SetMaxOpenConns(100)
-	dbConnect.AutoMigrate(Film{})
+	dbConnect.AutoMigrate(Movie{})
 	dbConnect.AutoMigrate(Torrent{})
 	// dbConnect.LogMode(true)
 	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password)
@@ -124,32 +124,32 @@ func appInit() (*App, error) {
 	return &App{db: dbConnect, net: inetConnect}, nil
 }
 
-func (a *App) createFilm(ncf ncp.Film) (int64, error) {
+func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 	var (
-		film Film
+		movie Movie
 		kp   kpp.KP
 	)
-	film.Name = ncf.Name
-	film.EngName = ncf.EngName
-	film.Year = ncf.Year
-	film.Genre = ncf.Genre
-	film.Country = ncf.Country
-	film.Director = ncf.Director
-	film.Producer = ncf.Producer
-	film.Actors = ncf.Actors
-	film.Description = ncf.Description
-	film.Age = ncf.Age
-	film.ReleaseDate = ncf.ReleaseDate
-	film.RussianDate = ncf.RussianDate
-	film.Duration = ncf.Duration
-	kp, err := a.getRating(film)
+	movie.Name = ncf.Name
+	movie.EngName = ncf.EngName
+	movie.Year = ncf.Year
+	movie.Genre = ncf.Genre
+	movie.Country = ncf.Country
+	movie.Director = ncf.Director
+	movie.Producer = ncf.Producer
+	movie.Actors = ncf.Actors
+	movie.Description = ncf.Description
+	movie.Age = ncf.Age
+	movie.ReleaseDate = ncf.ReleaseDate
+	movie.RussianDate = ncf.RussianDate
+	movie.Duration = ncf.Duration
+	kp, err := a.getRating(movie)
 	if err == nil {
-		film.Kinopoisk = kp.Kinopoisk
-		film.IMDb = kp.IMDb
+		movie.Kinopoisk = kp.Kinopoisk
+		movie.IMDb = kp.IMDb
 	}
-	film.Poster = ncf.Poster
-	err = a.db.Model(Film{}).Create(&film).Error
-	return film.ID, err
+	movie.Poster = ncf.Poster
+	err = a.db.Model(Movie{}).Create(&movie).Error
+	return movie.ID, err
 }
 
 func (a *App) createTorrent(ncf ncp.Film) error {
@@ -157,13 +157,13 @@ func (a *App) createTorrent(ncf ncp.Film) error {
 		tor Torrent
 		err error
 	)
-	tor.FilmID, err = a.getFilmID(ncf)
+	tor.MovieID, err = a.getMovieID(ncf)
 	if err != nil {
-		id, err := a.createFilm(ncf)
+		id, err := a.createMovie(ncf)
 		if err != nil {
 			return err
 		}
-		tor.FilmID = id
+		tor.MovieID = id
 	}
 	tor.DateCreate = ncf.DateCreate
 	tor.Href = ncf.Href
@@ -184,16 +184,16 @@ func (a *App) createTorrent(ncf ncp.Film) error {
 	return a.db.Model(Torrent{}).Create(&tor).Error
 }
 
-func (a *App) getFilms() ([]Film, error) {
-	var films []Film
-	err := a.db.Model(Film{}).Find(&films).Error
-	return films, err
+func (a *App) getMovies() ([]Movie, error) {
+	var movies []Movie
+	err := a.db.Model(Movie{}).Find(&movies).Error
+	return movies, err
 }
 
-func (a *App) getFilmID(ncf ncp.Film) (int64, error) {
-	var film Film
-	err := a.db.Model(Film{}).Where("name = ? AND year = ?", ncf.Name, ncf.Year).First(&film).Error
-	return film.ID, err
+func (a *App) getMovieID(ncf ncp.Film) (int64, error) {
+	var movie Movie
+	err := a.db.Model(Movie{}).Where("name = ? AND year = ?", ncf.Name, ncf.Year).First(&movie).Error
+	return movie.ID, err
 }
 
 func (a *App) getTorrentByHref(href string) (Torrent, error) {
@@ -207,11 +207,11 @@ func (a *App) updateTorrent(id int64, f ncp.Film) error {
 }
 
 func (a *App) updateName(id int64, name string) error {
-	return a.db.Model(Film{}).Where("id = ?", id).UpdateColumn("name", name).Error
+	return a.db.Model(Movie{}).Where("id = ?", id).UpdateColumn("name", name).Error
 }
 
-func (a *App) updateRating(film Film, kp kpp.KP) error {
-	return a.db.Model(Film{}).Where("upper(name) = ? and year = ?", strings.ToUpper(film.Name), film.Year).UpdateColumns(Film{Kinopoisk: kp.Kinopoisk, IMDb: kp.IMDb}).Error
+func (a *App) updateRating(movie Movie, kp kpp.KP) error {
+	return a.db.Model(Movie{}).Where("upper(name) = ? and year = ?", strings.ToUpper(movie.Name), movie.Year).UpdateColumns(Movie{Kinopoisk: kp.Kinopoisk, IMDb: kp.IMDb}).Error
 }
 
 func (a *App) getWithDownload() ([]Torrent, error) {
@@ -222,30 +222,30 @@ func (a *App) getWithDownload() ([]Torrent, error) {
 	return torrents, err
 }
 
-func (a *App) getFilmName(ncf ncp.Film) (string, error) {
-	var films []Film
-	a.db.Model(Film{}).Where("upper(name) = ? and year = ?", strings.ToUpper(ncf.Name), ncf.Year).Find(&films)
-	if len(films) > 0 {
-		return films[0].Name, nil
+func (a *App) getMovieName(ncf ncp.Film) (string, error) {
+	var movies []Movie
+	a.db.Model(Movie{}).Where("upper(name) = ? and year = ?", strings.ToUpper(ncf.Name), ncf.Year).Find(&movies)
+	if len(movies) > 0 {
+		return movies[0].Name, nil
 	}
 	return "", fmt.Errorf("Name not found")
 }
 
-func (a *App) getLowerName(film Film) (string, error) {
-	var f Film
-	err := a.db.Model(Film{}).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(film.Name), film.Year, strings.ToUpper(film.Name)).First(&f).Error
-	return f.Name, err
+func (a *App) getLowerName(movie Movie) (string, error) {
+	var m Movie
+	err := a.db.Model(Movie{}).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(movie.Name), movie.Year, strings.ToUpper(movie.Name)).First(&m).Error
+	return m.Name, err
 }
 
-func (a *App) getNoRating() ([]Film, error) {
-	var films []Film
-	err := a.db.Model(Film{}).Where("kinopoisk = 0 OR imdb = 0").Find(&films).Error
-	return films, err
+func (a *App) getNoRating() ([]Movie, error) {
+	var movies []Movie
+	err := a.db.Model(Movie{}).Where("kinopoisk = 0 OR imdb = 0").Find(&movies).Error
+	return movies, err
 }
 
-func (a *App) getRating(film Film) (kpp.KP, error) {
+func (a *App) getRating(movie Movie) (kpp.KP, error) {
 	var kp kpp.KP
-	kp, err := kpp.GetRating(film.Name, film.EngName, film.Year)
+	kp, err := kpp.GetRating(movie.Name, movie.EngName, movie.Year)
 	if err != nil {
 		return kp, fmt.Errorf("Rating no found")
 	}
