@@ -78,7 +78,7 @@ type Movie struct {
 // CreatedAt     Дата создания записи БД
 type Torrent struct {
 	ID            int64     `gorm:"column:id"             db:"id"             sql:"AUTO_INCREMENT"`
-	MovieID        int64    `gorm:"column:movie_id"       db:"movie_id"`
+	MovieID       int64     `gorm:"column:movie_id"       db:"movie_id"`
 	DateCreate    string    `gorm:"column:date_create"    db:"date_create"    sql:"type:text"`
 	Href          string    `gorm:"column:href"           db:"href"           sql:"type:text"`
 	Torrent       string    `gorm:"column:torrent"        db:"torrent"        sql:"type:text"`
