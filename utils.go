@@ -85,14 +85,14 @@ func exit(err error) {
 	}
 }
 
-func (a *App) checkName(film ncp.Film) ncp.Film {
-	if film.Name != strings.ToUpper(film.Name) {
-		return film
+func (a *App) checkName(ncf ncp.Film) ncp.Film {
+	if ncf.Name != strings.ToUpper(ncf.Name) {
+		return ncf
 	}
-	name, err := a.getFilmName(film)
+	name, err := a.getFilmName(ncf)
 	if err == nil {
-		film.Name = name
-		return film
+		ncf.Name = name
+		return ncf
 	}
-	return film
+	return ncf
 }

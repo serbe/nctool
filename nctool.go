@@ -22,13 +22,13 @@ func (a *App) get() error {
 			return err
 		}
 		for _, topic := range topics {
-			_, err := a.getFilmByHref(topic.Href)
+			_, err := a.getTorrentByHref(topic.Href)
 			if err == gorm.RecordNotFound {
 				film, err := a.net.ParseTopic(topic)
 				if err == nil {
 					i++
 					film = a.checkName(film)
-					a.createFilm(film)
+					a.createTorrent(film)
 				}
 			}
 		}
@@ -42,19 +42,24 @@ func (a *App) get() error {
 }
 
 func (a *App) update() error {
-	var i int64
-	films, err := a.getWithTorrents()
+	var (
+		i        int64
+		err      error
+		torrents []Torrent
+	)
+
+	torrents, err = a.getWithDownload()
 	if err != nil {
 		return err
 	}
-	for _, film := range films {
+	for _, tor := range torrents {
 		var topic ncp.Topic
-		topic.Href = film.Href
+		topic.Href = tor.Href
 		f, err := a.net.ParseTopic(topic)
 		if err == nil {
-			if f.NNM != film.NNM || f.Seeders != film.Seeders || f.Leechers != f.Leechers || f.Torrent != film.Torrent || f.Duration != film.Duration {
+			if f.NNM != tor.NNM || f.Seeders != tor.Seeders || f.Leechers != tor.Leechers || f.Torrent != tor.Torrent {
 				i++
-				a.updateFilm(film.ID, f)
+				a.updateTorrent(tor.ID, f)
 			}
 		} else {
 			return err
@@ -70,7 +75,7 @@ func (a *App) update() error {
 
 func (a *App) name() error {
 	var i int64
-	films, err := a.getWithTorrents()
+	films, err := a.getFilms()
 	if err != nil {
 		return err
 	}
@@ -92,14 +97,26 @@ func (a *App) name() error {
 }
 
 func (a *App) rating() error {
-	films, err := a.getWithTorrents()
+	var (
+		i int64
+	)
+	films, err := a.getNoRating()
 	if err != nil {
 		return err
 	}
 	for _, film := range films {
 		if film.Kinopoisk == 0 || film.IMDb == 0 {
-			a.getRating(film)
+			kp, err := a.getRating(film)
+			if err == nil {
+				i++
+				_ = a.updateRating(film, kp)
+			}
 		}
+	}
+	if i > 0 {
+		log.Println(i, "ratings update")
+	} else {
+		log.Println("No update ratings")
 	}
 	return nil
 }
