@@ -120,10 +120,10 @@ func (a *App) getPoster(url string) (string, error) {
 	m := resize.Resize(15, 0, img, resize.Lanczos3)
 	outName := strings.Replace(url, "/", "", -1)
 	outName = strings.Replace(url, ":", "", -1)
-	if len(outName) < 12 {
+	if len(outName) < 20 {
 		outName = outName[:len(outName)-4]
 	} else {
-		outName = outName[len(outName)-12 : len(outName)-4]
+		outName = outName[len(outName)-20 : len(outName)-4]
 	}
 	out, err := os.Create(a.hd + outName + ".jpg")
 	if err != nil {
