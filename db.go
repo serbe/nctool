@@ -30,7 +30,8 @@ import (
 // Duration      Продолжительность
 // Kinopoisk     Рейтинг кинопоиска
 // Imdb          Рейтинг IMDb
-// Poster        Ссылка на постер
+// Poster        Имя файла постера
+// PosterURL     Сетевая ссылка на постер
 // UpdatedAt     Дата обновления записи БД
 // CreatedAt     Дата создания записи БД
 type Movie struct {
@@ -51,7 +52,7 @@ type Movie struct {
 	Kinopoisk   float64   `gorm:"column:kinopoisk"      db:"kinopoisk"`
 	IMDb        float64   `gorm:"column:imdb"           db:"imdb"`
 	Poster      string    `gorm:"column:poster"         db:"poster"         sql:"type:text"`
-	PosterUrl   string    `gorm:"column:poster_url"     db:"poster_url"     sql:"type:text"`
+	PosterURL   string    `gorm:"column:poster_url"     db:"poster_url"     sql:"type:text"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"     db:"updated_at"`
 	CreatedAt   time.Time `gorm:"column:created_at"     db:"created_at"`
 }
@@ -148,8 +149,8 @@ func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 		movie.Kinopoisk = kp.Kinopoisk
 		movie.IMDb = kp.IMDb
 	}
-	movie.PosterUrl = ncf.Poster
-	movie.Poster, _ = a.getPoster(movie.PosterUrl)
+	movie.PosterURL = ncf.Poster
+	movie.Poster, _ = a.getPoster(movie.PosterURL)
 	err = a.db.Model(Movie{}).Create(&movie).Error
 	return movie.ID, err
 }

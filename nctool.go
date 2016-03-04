@@ -133,14 +133,14 @@ func (a *App) poster() error {
 		if movie.Poster != "" {
 			_, err = os.Stat(a.hd + movie.Poster)
 			if err == nil {
-				poster, err := a.getPoster(movie.PosterUrl)
+				poster, err := a.getPoster(movie.PosterURL)
 				if err == nil {
 					i++
 					_ = a.updatePoster(movie, poster)
 				}
 			}
 		} else {
-			poster, err := a.getPoster(movie.PosterUrl)
+			poster, err := a.getPoster(movie.PosterURL)
 			if err == nil {
 				i++
 				_ = a.updatePoster(movie, poster)
