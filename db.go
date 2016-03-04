@@ -51,7 +51,7 @@ type Movie struct {
 	Kinopoisk   float64   `gorm:"column:kinopoisk"      db:"kinopoisk"`
 	IMDb        float64   `gorm:"column:imdb"           db:"imdb"`
 	Poster      string    `gorm:"column:poster"         db:"poster"         sql:"type:text"`
-    PosterUrl   string    `gorm:"column:poster_url"     db:"poster_url"     sql:"type:text"`
+	PosterUrl   string    `gorm:"column:poster_url"     db:"poster_url"     sql:"type:text"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"     db:"updated_at"`
 	CreatedAt   time.Time `gorm:"column:created_at"     db:"created_at"`
 }
@@ -128,7 +128,7 @@ func appInit() (*App, error) {
 func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 	var (
 		movie Movie
-		kp   kpp.KP
+		kp    kpp.KP
 	)
 	movie.Name = ncf.Name
 	movie.EngName = ncf.EngName
@@ -149,7 +149,7 @@ func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 		movie.IMDb = kp.IMDb
 	}
 	movie.PosterUrl = ncf.Poster
-    movie.Poster, _ = a.getPoster(movie.PosterUrl)
+	movie.Poster, _ = a.getPoster(movie.PosterUrl)
 	err = a.db.Model(Movie{}).Create(&movie).Error
 	return movie.ID, err
 }
