@@ -130,7 +130,7 @@ func (a *App) poster() error {
 		return err
 	}
 	for _, movie := range movies {
-		poster, err := a.getPoster(movie.NetPoster)
+		poster, err := a.getPoster(movie.PosterUrl)
         if err == nil {
             i++
             _ = a.updatePoster(movie, poster)   

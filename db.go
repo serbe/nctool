@@ -51,7 +51,7 @@ type Movie struct {
 	Kinopoisk   float64   `gorm:"column:kinopoisk"      db:"kinopoisk"`
 	IMDb        float64   `gorm:"column:imdb"           db:"imdb"`
 	Poster      string    `gorm:"column:poster"         db:"poster"         sql:"type:text"`
-    NetPoster   string    `gorm:"column:poster"         db:"poster"         sql:"type:text"`
+    PosterUrl   string    `gorm:"column:poster_url"     db:"poster_url"     sql:"type:text"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"     db:"updated_at"`
 	CreatedAt   time.Time `gorm:"column:created_at"     db:"created_at"`
 }
@@ -114,8 +114,8 @@ func appInit() (*App, error) {
 	dbConnect.DB().Ping()
 	dbConnect.DB().SetMaxIdleConns(10)
 	dbConnect.DB().SetMaxOpenConns(100)
-	dbConnect.AutoMigrate(Movie{})
-	dbConnect.AutoMigrate(Torrent{})
+	dbConnect.AutoMigrate(&Movie{})
+	dbConnect.AutoMigrate(&Torrent{})
 	// dbConnect.LogMode(true)
 	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password)
 	if err != nil {
@@ -148,8 +148,8 @@ func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 		movie.Kinopoisk = kp.Kinopoisk
 		movie.IMDb = kp.IMDb
 	}
-	movie.NetPoster = ncf.Poster
-    movie.Poster, _ = a.getPoster(movie.NetPoster)
+	movie.PosterUrl = ncf.Poster
+    movie.Poster, _ = a.getPoster(movie.PosterUrl)
 	err = a.db.Model(Movie{}).Create(&movie).Error
 	return movie.ID, err
 }
