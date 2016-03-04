@@ -249,12 +249,6 @@ func (a *App) getNoRating() ([]Movie, error) {
 	return movies, err
 }
 
-func (a *App) getNoPoster() ([]Movie, error) {
-	var movies []Movie
-	err := a.db.Model(Movie{}).Where("poster = ''").Find(&movies).Error
-	return movies, err
-}
-
 func (a *App) getRating(movie Movie) (kpp.KP, error) {
 	var kp kpp.KP
 	kp, err := kpp.GetRating(movie.Name, movie.EngName, movie.Year)
