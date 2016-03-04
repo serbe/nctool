@@ -125,16 +125,27 @@ func (a *App) poster() error {
 	var (
 		i int64
 	)
-	movies, err := a.getNoPoster()
+	movies, err := a.getMovies()
 	if err != nil {
 		return err
 	}
 	for _, movie := range movies {
-		poster, err := a.getPoster(movie.PosterUrl)
-        if err == nil {
-            i++
-            _ = a.updatePoster(movie, poster)   
-        }
+		if movie.Poster != "" {
+			_, err = os.Stat(a.hd + movie.Poster)
+			if err == nil {
+				poster, err := a.getPoster(movie.PosterUrl)
+				if err == nil {
+					i++
+					_ = a.updatePoster(movie, poster)
+				}
+			}
+		} else {
+			poster, err := a.getPoster(movie.PosterUrl)
+			if err == nil {
+				i++
+				_ = a.updatePoster(movie, poster)
+			}
+		}
 	}
 	if i > 0 {
 		log.Println(i, "ratings update")
@@ -191,7 +202,7 @@ Commands:
 		log.Println("End get ratings")
 		exit(err)
 	}
-    if contain(args, "poster") {
+	if contain(args, "poster") {
 		log.Println("Start get posters")
 		err := app.poster()
 		log.Println("End get posters")

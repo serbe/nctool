@@ -1,14 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"image/jpeg"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
-
-	"bytes"
 
 	"github.com/jinzhu/gorm"
 	"github.com/nfnt/resize"
@@ -25,7 +24,7 @@ var (
 		"update",
 		"name",
 		"rating",
-        "poster",
+		"poster",
 	}
 )
 
@@ -125,7 +124,8 @@ func (a *App) getPoster(url string) (string, error) {
 	} else {
 		outName = outName[len(outName)-20 : len(outName)-4]
 	}
-	out, err := os.Create(a.hd + outName + ".jpg")
+    poster = outName + ".jpg"
+	out, err := os.Create(a.hd + poster)
 	if err != nil {
 		return poster, err
 	}
