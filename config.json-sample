@@ -8,5 +8,6 @@
     "password": "Pqpassword",
     "dbname": "rssdb",
     "sslmode": "disable"
-  }
+  },
+  "httpdir": "../ncrss/public/img/"
 }
