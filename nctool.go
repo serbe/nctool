@@ -100,18 +100,41 @@ func (a *App) rating() error {
 	var (
 		i int64
 	)
-	films, err := a.getNoRating()
+	movies, err := a.getNoRating()
 	if err != nil {
 		return err
 	}
-	for _, film := range films {
-		if film.Kinopoisk == 0 || film.IMDb == 0 {
-			kp, err := a.getRating(film)
+	for _, movie := range movies {
+		if movie.Kinopoisk == 0 || movie.IMDb == 0 {
+			kp, err := a.getRating(movie)
 			if err == nil {
 				i++
-				_ = a.updateRating(film, kp)
+				_ = a.updateRating(movie, kp)
 			}
 		}
+	}
+	if i > 0 {
+		log.Println(i, "ratings update")
+	} else {
+		log.Println("No update ratings")
+	}
+	return nil
+}
+
+func (a *App) poster() error {
+	var (
+		i int64
+	)
+	movies, err := a.getNoPoster()
+	if err != nil {
+		return err
+	}
+	for _, movie := range movies {
+		poster, err := a.getPoster(movie.NetPoster)
+        if err == nil {
+            i++
+            _ = a.updatePoster(movie, poster)   
+        }
 	}
 	if i > 0 {
 		log.Println(i, "ratings update")
@@ -132,7 +155,8 @@ Commands:
 	get     получить новые фильмы
 	update  обновление информации фильмов
 	name    поиск и исправление имен фильмов
-	rating  получение рейтинга Кинопоиска и IMDb`)
+	rating  получение рейтинга Кинопоиска и IMDb
+    poster  получение постеров`)
 		os.Exit(0)
 	}
 	if containCommand(args) == false {
@@ -165,6 +189,12 @@ Commands:
 		log.Println("Start get ratings")
 		err := app.rating()
 		log.Println("End get ratings")
+		exit(err)
+	}
+    if contain(args, "poster") {
+		log.Println("Start get posters")
+		err := app.poster()
+		log.Println("End get posters")
 		exit(err)
 	}
 }

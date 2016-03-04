@@ -2,11 +2,16 @@ package main
 
 import (
 	"encoding/json"
+	"image/jpeg"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
 
+	"bytes"
+
 	"github.com/jinzhu/gorm"
+	"github.com/nfnt/resize"
 	"github.com/serbe/ncp"
 )
 
@@ -20,6 +25,7 @@ var (
 		"update",
 		"name",
 		"rating",
+        "poster",
 	}
 )
 
@@ -27,6 +33,7 @@ var (
 type App struct {
 	db  gorm.DB
 	net *ncp.NCp
+	hd  string
 }
 
 type config struct {
@@ -40,9 +47,7 @@ type config struct {
 		Dbname   string `json:"dbname"`
 		Sslmode  string `json:"sslmode"`
 	} `json:"postgresql"`
-	Cc struct {
-		API string `json:"api"`
-	} `json:"cinemate"`
+	Hd string `json:"httpdir"`
 }
 
 func getConfig() (config, error) {
@@ -95,4 +100,36 @@ func (a *App) checkName(ncf ncp.Film) ncp.Film {
 		return ncf
 	}
 	return ncf
+}
+
+func (a *App) getPoster(url string) (string, error) {
+	var poster string
+	resp, err := http.Get(url)
+	if err != nil {
+		return poster, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return poster, err
+	}
+	img, err := jpeg.Decode(bytes.NewReader(body))
+	if err != nil {
+		return poster, err
+	}
+	m := resize.Resize(15, 0, img, resize.Lanczos3)
+	outName := strings.Replace(url, "/", "", -1)
+	outName = strings.Replace(url, ":", "", -1)
+	if len(outName) < 12 {
+		outName = outName[:len(outName)-4]
+	} else {
+		outName = outName[len(outName)-12 : len(outName)-4]
+	}
+	out, err := os.Create(a.hd + outName + ".jpg")
+	if err != nil {
+		return poster, err
+	}
+	defer out.Close()
+	jpeg.Encode(out, m, nil)
+	return poster, nil
 }

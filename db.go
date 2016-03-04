@@ -51,6 +51,7 @@ type Movie struct {
 	Kinopoisk   float64   `gorm:"column:kinopoisk"      db:"kinopoisk"`
 	IMDb        float64   `gorm:"column:imdb"           db:"imdb"`
 	Poster      string    `gorm:"column:poster"         db:"poster"         sql:"type:text"`
+    NetPoster   string    `gorm:"column:poster"         db:"poster"         sql:"type:text"`
 	UpdatedAt   time.Time `gorm:"column:updated_at"     db:"updated_at"`
 	CreatedAt   time.Time `gorm:"column:created_at"     db:"created_at"`
 }
@@ -121,7 +122,7 @@ func appInit() (*App, error) {
 		log.Println("net init ", err)
 		return &App{}, err
 	}
-	return &App{db: dbConnect, net: inetConnect}, nil
+	return &App{db: dbConnect, net: inetConnect, hd: conf.Hd}, nil
 }
 
 func (a *App) createMovie(ncf ncp.Film) (int64, error) {
@@ -147,7 +148,8 @@ func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 		movie.Kinopoisk = kp.Kinopoisk
 		movie.IMDb = kp.IMDb
 	}
-	movie.Poster = ncf.Poster
+	movie.NetPoster = ncf.Poster
+    movie.Poster, _ = a.getPoster(movie.NetPoster)
 	err = a.db.Model(Movie{}).Create(&movie).Error
 	return movie.ID, err
 }
@@ -214,6 +216,10 @@ func (a *App) updateRating(movie Movie, kp kpp.KP) error {
 	return a.db.Model(Movie{}).Where("upper(name) = ? and year = ?", strings.ToUpper(movie.Name), movie.Year).UpdateColumns(Movie{Kinopoisk: kp.Kinopoisk, IMDb: kp.IMDb}).Error
 }
 
+func (a *App) updatePoster(movie Movie, poster string) error {
+	return a.db.Model(Movie{}).Where("id = ?", movie.ID).UpdateColumn("poster", poster).Error
+}
+
 func (a *App) getWithDownload() ([]Torrent, error) {
 	var (
 		torrents []Torrent
@@ -240,6 +246,12 @@ func (a *App) getLowerName(movie Movie) (string, error) {
 func (a *App) getNoRating() ([]Movie, error) {
 	var movies []Movie
 	err := a.db.Model(Movie{}).Where("kinopoisk = 0 OR imdb = 0").Find(&movies).Error
+	return movies, err
+}
+
+func (a *App) getNoPoster() ([]Movie, error) {
+	var movies []Movie
+	err := a.db.Model(Movie{}).Where("poster = ''").Find(&movies).Error
 	return movies, err
 }
 
