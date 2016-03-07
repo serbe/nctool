@@ -116,9 +116,9 @@ func (a *App) getPoster(url string) (string, error) {
 	if err != nil {
 		return poster, err
 	}
-	m := resize.Resize(15, 0, img, resize.Lanczos3)
+	m := resize.Resize(150, 0, img, resize.Lanczos3)
 	outName := strings.Replace(url, "/", "", -1)
-	outName = strings.Replace(url, ":", "", -1)
+	outName = strings.Replace(outName, ":", "", -1)
 	if len(outName) < 20 {
 		outName = outName[:len(outName)-4]
 	} else {
