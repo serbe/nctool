@@ -30,7 +30,7 @@ var (
 
 // App struct variables
 type App struct {
-	db  gorm.DB
+	db  *gorm.DB
 	net *ncp.NCp
 	hd  string
 }

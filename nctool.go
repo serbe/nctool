@@ -23,7 +23,7 @@ func (a *App) get() error {
 		}
 		for _, topic := range topics {
 			_, err := a.getTorrentByHref(topic.Href)
-			if err == gorm.RecordNotFound {
+			if err == gorm.ErrRecordNotFound {
 				film, err := a.net.ParseTopic(topic)
 				if err == nil {
 					i++
@@ -167,7 +167,7 @@ Commands:
 	update  обновление информации фильмов
 	name    поиск и исправление имен фильмов
 	rating  получение рейтинга Кинопоиска и IMDb
-    poster  получение постеров`)
+	poster  получение постеров`)
 		os.Exit(0)
 	}
 	if containCommand(args) == false {
