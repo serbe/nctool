@@ -148,9 +148,9 @@ func (a *App) poster() error {
 		}
 	}
 	if i > 0 {
-		log.Println(i, "ratings update")
+		log.Println(i, "posters update")
 	} else {
-		log.Println("No update ratings")
+		log.Println("No update posters")
 	}
 	return nil
 }
