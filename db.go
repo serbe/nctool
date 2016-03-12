@@ -214,7 +214,11 @@ func (a *App) updateName(id int64, name string) error {
 }
 
 func (a *App) updateRating(movie Movie, kp kpp.KP) error {
-	return a.db.Model(Movie{}).Where("upper(name) = ? and year = ?", strings.ToUpper(movie.Name), movie.Year).Updates(Movie{Kinopoisk: kp.Kinopoisk, IMDb: kp.IMDb}).Error
+	var duration string
+	if movie.Duration == "" {
+		duration = kp.Duration
+	}
+	return a.db.Model(Movie{}).Where("upper(name) = ? and year = ?", strings.ToUpper(movie.Name), movie.Year).Updates(Movie{Kinopoisk: kp.Kinopoisk, IMDb: kp.IMDb, Duration: duration}).Error
 }
 
 func (a *App) updatePoster(movie Movie, poster string) error {
