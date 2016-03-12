@@ -63,6 +63,7 @@ type Movie struct {
 // DateCreate    Дата создания раздачи
 // Href          Ссылка
 // Torrent       Ссылка на torrent
+// Magnet        Ссылка на magnet
 // NNM           Рейтинг nnm-club
 // SubtitlesType Вид субтитров
 // Subtitles     Субтитры
@@ -84,6 +85,7 @@ type Torrent struct {
 	DateCreate    string    `gorm:"column:date_create"    db:"date_create"    sql:"type:text"`
 	Href          string    `gorm:"column:href"           db:"href"           sql:"type:text"`
 	Torrent       string    `gorm:"column:torrent"        db:"torrent"        sql:"type:text"`
+	Magnet        string    `gorm:"column:magnet"         db:"magnet"         sql:"type:text"`
 	NNM           float64   `gorm:"column:nnm"            db:"nnm"`
 	SubtitlesType string    `gorm:"column:subtitles_type" db:"subtitles_type" sql:"type:text"`
 	Subtitles     string    `gorm:"column:subtitles"      db:"subtitles"      sql:"type:text"`
@@ -171,6 +173,7 @@ func (a *App) createTorrent(ncf ncp.Film) error {
 	tor.DateCreate = ncf.DateCreate
 	tor.Href = ncf.Href
 	tor.Torrent = ncf.Torrent
+	tor.Magnet = ncf.Magnet
 	tor.NNM = ncf.NNM
 	tor.SubtitlesType = ncf.SubtitlesType
 	tor.Subtitles = ncf.Subtitles
