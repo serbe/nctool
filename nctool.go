@@ -105,7 +105,7 @@ func (a *App) rating() error {
 		return err
 	}
 	for _, movie := range movies {
-		if movie.Kinopoisk == 0 || movie.IMDb == 0 {
+		if movie.Kinopoisk == 0 || movie.IMDb == 0 || movie.Duration == "" {
 			kp, err := a.getRating(movie)
 			if err == nil {
 				i++

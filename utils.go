@@ -124,7 +124,7 @@ func (a *App) getPoster(url string) (string, error) {
 	} else {
 		outName = outName[len(outName)-20 : len(outName)-4]
 	}
-    poster = outName + ".jpg"
+	poster = outName + ".jpg"
 	out, err := os.Create(a.hd + poster)
 	if err != nil {
 		return poster, err
