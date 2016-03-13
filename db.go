@@ -232,7 +232,7 @@ func (a *App) getWithDownload() ([]Torrent, error) {
 	var (
 		torrents []Torrent
 	)
-	err := a.db.Model(Torrent{}).Where("torrent != ''").Find(&torrents).Error
+	err := a.db.Model(Torrent{}).Where("magnet != ''").Find(&torrents).Error
 	return torrents, err
 }
 
