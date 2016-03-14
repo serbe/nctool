@@ -19,13 +19,6 @@ var (
 		"http://nnm-club.me/forum/viewforum.php?f=218",
 		"http://nnm-club.me/forum/viewforum.php?f=270",
 	}
-	commands = []string{
-		"get",
-		"update",
-		"name",
-		"rating",
-		"poster",
-	}
 )
 
 // App struct variables
@@ -134,7 +127,7 @@ func (a *App) getPoster(url string) (string, error) {
 	return poster, nil
 }
 
-func exists(path string) bool {
+func existsFile(path string) bool {
 	_, err := os.Stat(path)
 	if err == nil {
 		return true
@@ -143,4 +136,26 @@ func exists(path string) bool {
 		return false
 	}
 	return true
+}
+
+func stringInSlice(list []string, s string) int {
+	for i, b := range list {
+		if b == s {
+			return i
+		}
+	}
+	return -1
+}
+
+func deleteFromSlice(list []string, s string) []string {
+	sis := stringInSlice(list, s)
+	list = append(list[:sis], list[sis+1:]...)
+	return list
+}
+
+func createDir(path string) error {
+	if existsFile(path) == true {
+		return nil
+	}
+	return os.Mkdir(path, 0777)
 }
