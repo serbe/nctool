@@ -133,3 +133,14 @@ func (a *App) getPoster(url string) (string, error) {
 	jpeg.Encode(out, m, nil)
 	return poster, nil
 }
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}

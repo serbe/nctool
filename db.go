@@ -125,6 +125,9 @@ func appInit() (*App, error) {
 		log.Println("net init ", err)
 		return &App{}, err
 	}
+	if exists(conf.Hd) == false {
+		os.Mkdir(conf.Hd, 0777)
+	}
 	return &App{db: dbConnect, net: inetConnect, hd: conf.Hd}, nil
 }
 
