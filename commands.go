@@ -10,6 +10,16 @@ import (
 	"github.com/serbe/ncp"
 )
 
+var (
+	commands = []string{
+		"get",
+		"update",
+		"name",
+		"rating",
+		"poster",
+	}
+)
+
 func (a *App) get() error {
 	var (
 		err error
