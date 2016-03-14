@@ -16,7 +16,7 @@ func (a *App) get() error {
 		i   int64
 	)
 	for _, parseurl := range urls {
-		topics, err := a.net.ParseForumTree(parseurl)
+		topics, err := a.net.ParseForumTree(parseurl, false)
 		if err != nil {
 			log.Println("ParseForumTree ", err)
 			return err
@@ -24,7 +24,7 @@ func (a *App) get() error {
 		for _, topic := range topics {
 			_, err := a.getTorrentByHref(topic.Href)
 			if err == gorm.ErrRecordNotFound {
-				film, err := a.net.ParseTopic(topic)
+				film, err := a.net.ParseTopic(topic, false)
 				if err == nil {
 					i++
 					film = a.checkName(film)
@@ -55,7 +55,7 @@ func (a *App) update() error {
 	for _, tor := range torrents {
 		var topic ncp.Topic
 		topic.Href = tor.Href
-		f, err := a.net.ParseTopic(topic)
+		f, err := a.net.ParseTopic(topic, false)
 		if err == nil {
 			if f.NNM != tor.NNM || f.Seeders != tor.Seeders || f.Leechers != tor.Leechers || f.Torrent != tor.Torrent {
 				i++
