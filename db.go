@@ -120,13 +120,13 @@ func appInit() (*App, error) {
 	dbConnect.AutoMigrate(&Movie{})
 	dbConnect.AutoMigrate(&Torrent{})
 	// dbConnect.LogMode(true)
-	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password)
+	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Px)
 	if err != nil {
 		log.Println("net init ", err)
 		return &App{}, err
 	}
 	_ = createDir(conf.Hd)
-	return &App{db: dbConnect, net: inetConnect, hd: conf.Hd}, nil
+	return &App{db: dbConnect, net: inetConnect, hd: conf.Hd, px: conf.Px}, nil
 }
 
 func (a *App) createMovie(ncf ncp.Film) (int64, error) {

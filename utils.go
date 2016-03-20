@@ -26,6 +26,7 @@ type App struct {
 	db  *gorm.DB
 	net *ncp.NCp
 	hd  string
+	px  string
 }
 
 type config struct {
@@ -40,6 +41,7 @@ type config struct {
 		Sslmode  string `json:"sslmode"`
 	} `json:"postgresql"`
 	Hd string `json:"httpdir"`
+	Px string `json:"proxy"`
 }
 
 func getConfig() (config, error) {

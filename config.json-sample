@@ -9,5 +9,6 @@
     "dbname": "rssdb",
     "sslmode": "disable"
   },
-  "httpdir": "../ncrss/public/img/"
+  "httpdir": "../ncrss/public/img/",
+  "proxy": "http://185.29.173.195:80"
 }
