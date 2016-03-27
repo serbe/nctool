@@ -16,8 +16,8 @@ import (
 
 var (
 	urls = []string{
-		"http://nnm-club.me/forum/viewforum.php?f=218",
-		"http://nnm-club.me/forum/viewforum.php?f=270",
+		"http://nnmclub.to/forum/viewforum.php?f=218",
+		"http://nnmclub.to/forum/viewforum.php?f=270",
 	}
 )
 
