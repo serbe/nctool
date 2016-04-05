@@ -28,7 +28,7 @@ func (a *App) get() error {
 	for _, parseurl := range urls {
 		topics, err := a.net.ParseForumTree(parseurl, false)
 		if err != nil {
-			log.Println("ParseForumTree ", err)
+			log.Println("ParseForumTree ", parseurl, err)
 			return err
 		}
 		for _, topic := range topics {
