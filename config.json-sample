@@ -10,5 +10,6 @@
     "sslmode": "disable"
   },
   "httpdir": "../ncrss/public/img/",
-  "proxy": "http://185.29.173.195:80"
+  "proxy": "http://185.29.173.195:80",
+  "address": "http://nnmclub.to"
 }

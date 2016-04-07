@@ -120,7 +120,7 @@ func appInit() (*App, error) {
 	dbConnect.AutoMigrate(&Movie{})
 	dbConnect.AutoMigrate(&Torrent{})
 	// dbConnect.LogMode(true)
-	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Px)
+	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Px)
 	if err != nil {
 		log.Println("net init ", err)
 		return &App{}, err

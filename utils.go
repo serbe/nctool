@@ -14,13 +14,6 @@ import (
 	"github.com/serbe/ncp"
 )
 
-var (
-	urls = []string{
-		"http://nnmclub.to/forum/viewforum.php?f=218",
-		"http://nnmclub.to/forum/viewforum.php?f=270",
-	}
-)
-
 // App struct variables
 type App struct {
 	db  *gorm.DB
@@ -40,8 +33,9 @@ type config struct {
 		Dbname   string `json:"dbname"`
 		Sslmode  string `json:"sslmode"`
 	} `json:"postgresql"`
-	Hd string `json:"httpdir"`
-	Px string `json:"proxy"`
+	Address string `json:"address"`
+	Hd      string `json:"httpdir"`
+	Px      string `json:"proxy"`
 }
 
 func getConfig() (config, error) {

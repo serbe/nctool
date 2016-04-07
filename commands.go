@@ -18,6 +18,10 @@ var (
 		"rating",
 		"poster",
 	}
+	urls = []string{
+		"/forum/viewforum.php?f=218",
+		"/forum/viewforum.php?f=270",
+	}
 )
 
 func (a *App) get() error {
