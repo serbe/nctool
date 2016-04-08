@@ -28,6 +28,7 @@ type config struct {
 	Hd      string `json:"httpdir"`
 	Px      string `json:"proxy"`
 	Debug   bool   `json:"debug"`
+	DebugDB bool   `json:"debugdb"`
 }
 
 func getConfig() (config, error) {

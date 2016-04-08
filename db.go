@@ -105,11 +105,11 @@ type Torrent struct {
 
 // App struct variables
 type App struct {
-	db  *gorm.DB
-	net *ncp.NCp
-	hd  string
-	px  string
-    debug bool
+	db    *gorm.DB
+	net   *ncp.NCp
+	hd    string
+	px    string
+	debug bool
 }
 
 var app *App
@@ -132,7 +132,7 @@ func appInit() (*App, error) {
 		dbConnect.DB().SetMaxOpenConns(100)
 		dbConnect.AutoMigrate(&Movie{})
 		dbConnect.AutoMigrate(&Torrent{})
-		dbConnect.LogMode(conf.Debug)
+		dbConnect.LogMode(conf.DebugDB)
 		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Px)
 		if err != nil {
 			log.Println("net init ", err)
@@ -143,7 +143,7 @@ func appInit() (*App, error) {
 		app.net = inetConnect
 		app.hd = conf.Hd
 		app.px = conf.Px
-        app.debug = conf.Debug
+		app.debug = conf.Debug
 	}
 	return app, nil
 }
@@ -287,4 +287,10 @@ func (a *App) getRating(movie Movie) (kpp.KP, error) {
 		return kp, fmt.Errorf("Rating no found")
 	}
 	return kp, nil
+}
+
+func (a *App) getFilmByMovieID(id int64) (Torrent, error) {
+	var torrent Torrent
+	err := a.db.Model(Torrent{}).Where("movie_id != ?", id).First(&torrent).Error
+	return torrent, err
 }

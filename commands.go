@@ -149,21 +149,39 @@ func (a *App) poster() error {
 		files = append(files, file.Name())
 	}
 	for _, movie := range movies {
-		if movie.Poster != "" {
-			if existsFile(a.hd+movie.Poster) == false {
+		if movie.PosterURL != "" {
+			if movie.Poster != "" {
+				if existsFile(a.hd+movie.Poster) == false {
+					poster, err := a.getPoster(movie.PosterURL)
+					if err == nil {
+						i++
+						_ = a.updatePoster(movie, poster)
+					}
+				} else {
+					files = deleteFromSlice(files, movie.Poster)
+				}
+			} else {
 				poster, err := a.getPoster(movie.PosterURL)
 				if err == nil {
 					i++
 					_ = a.updatePoster(movie, poster)
 				}
-			} else {
-				files = deleteFromSlice(files, movie.Poster)
 			}
 		} else {
-			poster, err := a.getPoster(movie.PosterURL)
+			film, err := a.getFilmByMovieID(movie.ID)
 			if err == nil {
-				i++
-				_ = a.updatePoster(movie, poster)
+				var topic ncp.Topic
+				topic.Href = film.Href
+				tempFilm, err := a.net.ParseTopic(topic, a.debug)
+				if err == nil {
+					if tempFilm.Poster != "" {
+						poster, err := a.getPoster(tempFilm.Poster)
+						if err == nil {
+							i++
+							_ = a.updatePoster(movie, poster)
+						}
+					}
+				}
 			}
 		}
 	}
