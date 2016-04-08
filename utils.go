@@ -9,18 +9,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/nfnt/resize"
 	"github.com/serbe/ncp"
 )
-
-// App struct variables
-type App struct {
-	db  *gorm.DB
-	net *ncp.NCp
-	hd  string
-	px  string
-}
 
 type config struct {
 	Nnm struct {

@@ -103,30 +103,47 @@ type Torrent struct {
 	CreatedAt     time.Time `gorm:"column:created_at"     db:"created_at"`
 }
 
+// App struct variables
+type App struct {
+	db  *gorm.DB
+	net *ncp.NCp
+	hd  string
+	px  string
+}
+
+var app *App
+
 func appInit() (*App, error) {
-	conf, err := getConfig()
-	if err != nil {
-		log.Fatal(err)
+	if app == nil {
+		app = new(App)
+		conf, err := getConfig()
+		if err != nil {
+			log.Fatal(err)
+		}
+		dbConnect, err := gorm.Open("postgres", fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", conf.Pq.User, conf.Pq.Password, conf.Pq.Dbname, conf.Pq.Sslmode))
+		if err != nil {
+			log.Fatal("db open ", err)
+			return app, err
+		}
+		dbConnect.DB()
+		dbConnect.DB().Ping()
+		dbConnect.DB().SetMaxIdleConns(10)
+		dbConnect.DB().SetMaxOpenConns(100)
+		dbConnect.AutoMigrate(&Movie{})
+		dbConnect.AutoMigrate(&Torrent{})
+		// dbConnect.LogMode(true)
+		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Px)
+		if err != nil {
+			log.Println("net init ", err)
+			return app, err
+		}
+		_ = createDir(conf.Hd)
+		app.db = dbConnect
+		app.net = inetConnect
+		app.hd = conf.Hd
+		app.px = conf.Px
 	}
-	dbConnect, err := gorm.Open("postgres", fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s", conf.Pq.User, conf.Pq.Password, conf.Pq.Dbname, conf.Pq.Sslmode))
-	if err != nil {
-		log.Fatal("db open ", err)
-		return &App{}, err
-	}
-	dbConnect.DB()
-	dbConnect.DB().Ping()
-	dbConnect.DB().SetMaxIdleConns(10)
-	dbConnect.DB().SetMaxOpenConns(100)
-	dbConnect.AutoMigrate(&Movie{})
-	dbConnect.AutoMigrate(&Torrent{})
-	// dbConnect.LogMode(true)
-	inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Px)
-	if err != nil {
-		log.Println("net init ", err)
-		return &App{}, err
-	}
-	_ = createDir(conf.Hd)
-	return &App{db: dbConnect, net: inetConnect, hd: conf.Hd, px: conf.Px}, nil
+	return app, nil
 }
 
 func (a *App) createMovie(ncf ncp.Film) (int64, error) {
