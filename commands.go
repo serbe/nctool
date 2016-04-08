@@ -30,7 +30,7 @@ func (a *App) get() error {
 		i   int64
 	)
 	for _, parseurl := range urls {
-		topics, err := a.net.ParseForumTree(parseurl, false)
+		topics, err := a.net.ParseForumTree(parseurl, a.debug)
 		if err != nil {
 			log.Println("ParseForumTree ", parseurl, err)
 			return err
@@ -38,7 +38,7 @@ func (a *App) get() error {
 		for _, topic := range topics {
 			_, err := a.getTorrentByHref(topic.Href)
 			if err == gorm.ErrRecordNotFound {
-				film, err := a.net.ParseTopic(topic, false)
+				film, err := a.net.ParseTopic(topic, a.debug)
 				if err == nil {
 					i++
 					film = a.checkName(film)

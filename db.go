@@ -109,6 +109,7 @@ type App struct {
 	net *ncp.NCp
 	hd  string
 	px  string
+    debug bool
 }
 
 var app *App
@@ -131,7 +132,7 @@ func appInit() (*App, error) {
 		dbConnect.DB().SetMaxOpenConns(100)
 		dbConnect.AutoMigrate(&Movie{})
 		dbConnect.AutoMigrate(&Torrent{})
-		// dbConnect.LogMode(true)
+		dbConnect.LogMode(conf.Debug)
 		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Px)
 		if err != nil {
 			log.Println("net init ", err)
@@ -142,6 +143,7 @@ func appInit() (*App, error) {
 		app.net = inetConnect
 		app.hd = conf.Hd
 		app.px = conf.Px
+        app.debug = conf.Debug
 	}
 	return app, nil
 }
