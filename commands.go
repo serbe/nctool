@@ -175,10 +175,13 @@ func (a *App) poster() error {
 				tempFilm, err := a.net.ParseTopic(topic, a.debug)
 				if err == nil {
 					if tempFilm.Poster != "" {
-						poster, err := a.getPoster(tempFilm.Poster)
-						if err == nil {
-							i++
-							_ = a.updatePoster(movie, poster)
+						err = a.updatePosterURL(movie, tempFilm.Poster)
+						if err != nil {
+							poster, err := a.getPoster(tempFilm.Poster)
+							if err == nil {
+								i++
+								_ = a.updatePoster(movie, poster)
+							}
 						}
 					}
 				}

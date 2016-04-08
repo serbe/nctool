@@ -248,6 +248,10 @@ func (a *App) updatePoster(movie Movie, poster string) error {
 	return a.db.Model(&movie).Update("poster", poster).Error
 }
 
+func (a *App) updatePosterURL(movie Movie, poster string) error {
+	return a.db.Model(&movie).Update("poster_url", poster).Error
+}
+
 func (a *App) getWithDownload() ([]Torrent, error) {
 	var (
 		torrents []Torrent
