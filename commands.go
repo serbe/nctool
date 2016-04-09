@@ -176,7 +176,7 @@ func (a *App) poster() error {
 				if err == nil {
 					if tempFilm.Poster != "" {
 						err = a.updatePosterURL(movie, tempFilm.Poster)
-						if err != nil {
+						if err == nil {
 							poster, err := a.getPoster(tempFilm.Poster)
 							if err == nil {
 								i++
@@ -197,7 +197,7 @@ func (a *App) poster() error {
 		log.Println("No update posters")
 	}
 	if len(files) > 0 {
-		log.Println("Remove ", len(files), "unused images")
+		log.Println("Remove", len(files), "unused images")
 	}
 	return nil
 }
