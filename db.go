@@ -245,11 +245,11 @@ func (a *App) updateRating(movie Movie, kp kpp.KP) error {
 }
 
 func (a *App) updatePoster(movie Movie, poster string) error {
-	return a.db.Model(&movie).Update("poster", poster).Error
+	return a.db.Model(&movie).Where("id = ?", movie.ID).Update("poster", poster).Error
 }
 
 func (a *App) updatePosterURL(movie Movie, poster string) error {
-	return a.db.Model(&movie).Update("poster_url", poster).Error
+	return a.db.Model(&movie).Where("id = ?", movie.ID).Update("poster_url", poster).Error
 }
 
 func (a *App) getWithDownload() ([]Torrent, error) {
@@ -295,6 +295,6 @@ func (a *App) getRating(movie Movie) (kpp.KP, error) {
 
 func (a *App) getFilmByMovieID(id int64) (Torrent, error) {
 	var torrent Torrent
-	err := a.db.Model(Torrent{}).Where("movie_id != ?", id).First(&torrent).Error
+	err := a.db.Model(Torrent{}).Where("movie_id = ?", id).First(&torrent).Error
 	return torrent, err
 }
