@@ -3,7 +3,10 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
+	"image"
 	"image/jpeg"
+	"image/png"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -84,7 +87,10 @@ func (a *App) checkName(ncf ncp.Film) ncp.Film {
 }
 
 func (a *App) getPoster(url string) (string, error) {
-	var poster string
+	var (
+		img    image.Image
+		poster string
+	)
 	resp, err := http.Get(url)
 	if err != nil {
 		return poster, err
@@ -94,9 +100,19 @@ func (a *App) getPoster(url string) (string, error) {
 	if err != nil {
 		return poster, err
 	}
-	img, err := jpeg.Decode(bytes.NewReader(body))
-	if err != nil {
-		return poster, err
+	ext := url[len(url)-3:]
+	if ext == "jpg" {
+		img, err = jpeg.Decode(bytes.NewReader(body))
+		if err != nil {
+			return poster, err
+		}
+	} else if ext == "png" {
+		img, err = png.Decode(bytes.NewReader(body))
+		if err != nil {
+			return poster, err
+		}
+	} else {
+		return poster, fmt.Errorf("Not supportet extension")
 	}
 	m := resize.Resize(150, 0, img, resize.Lanczos3)
 	outName := strings.Replace(url, "/", "", -1)
