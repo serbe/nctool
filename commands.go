@@ -197,7 +197,7 @@ func (a *App) poster() error {
 		log.Println("No update posters")
 	}
 	if len(files) > 0 {
-		log.Println("Remove ", len(files), "unused images")
+		log.Println("Remove", len(files), "unused images")
 	}
 	return nil
 }
