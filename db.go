@@ -15,6 +15,7 @@ import (
 
 // Movie all values
 // ID            id
+// Section       Раздел форума
 // Name          Название
 // EngName       Английское название
 // Year          Год
@@ -36,14 +37,16 @@ import (
 // CreatedAt     Дата создания записи БД
 type Movie struct {
 	ID          int64     `gorm:"column:id"             db:"id"             sql:"AUTO_INCREMENT"`
+	Section     string    `gorm:"column:section"        db:"section"        sql:"type:text"`
 	Name        string    `gorm:"column:name"           db:"name"           sql:"type:text"`
 	EngName     string    `gorm:"column:eng_name"       db:"eng_name"       sql:"type:text"`
 	Year        int64     `gorm:"column:year"           db:"year"`
-	Genre       string    `gorm:"column:genre"          db:"genre"          sql:"type:text"`
-	Country     string    `gorm:"column:country"        db:"country"        sql:"type:text"`
-	Director    string    `gorm:"column:director"       db:"director"       sql:"type:text"`
-	Producer    string    `gorm:"column:producer"       db:"producer"       sql:"type:text"`
-	Actors      string    `gorm:"column:actors"         db:"actors"         sql:"type:text"`
+	Genre       []string  `gorm:"column:genre"          db:"genre"          sql:"type:text[]"`
+	Country     []string  `gorm:"column:country"        db:"country"        sql:"type:text[]"`
+	RawCountry  string    `gorm:"column:raw_country"    db:"raw_country"    sql:"type:text"`
+	Director    []string  `gorm:"column:director"       db:"director"       sql:"type:text[]"`
+	Producer    []string  `gorm:"column:producer"       db:"producer"       sql:"type:text[]"`
+	Actors      []string  `gorm:"column:actors"         db:"actors"         sql:"type:text[]"`
 	Description string    `gorm:"column:description"    db:"description"    sql:"type:text"`
 	Age         string    `gorm:"column:age"            db:"age"            sql:"type:text"`
 	ReleaseDate string    `gorm:"column:release_date"   db:"release_date"   sql:"type:text"`
