@@ -286,29 +286,45 @@ func (a *App) getTorrentByHref(href string) (Torrent, error) {
 }
 
 func (a *App) updateTorrent(id int64, f ncp.Film) error {
-	return a.db.Update(Torrent{ID: id, NNM: f.NNM, Seeders: f.Seeders, Leechers: f.Leechers, Torrent: f.Torrent})
+	var torrent Torrent
+	err := a.db.Model(&torrent).Where("id = ?", id).First()
+	if err != nil {
+		return err
+	}
+	torrent.NNM = f.NNM
+	torrent.Seeders = f.Seeders
+	torrent.Leechers = f.Leechers
+	torrent.Torrent = f.Torrent
+	return a.db.Update(&torrent)
 }
 
 func (a *App) updateName(id int64, name string) error {
-	return a.db.Update(Movie{ID: id, Name: name})
+	var movie Movie
+	err := a.db.Model(&movie).Where("id = ?", id).First()
+	if err != nil {
+		return err
+	}
+	movie.Name = name
+	return a.db.Update(&movie)
 }
 
 func (a *App) updateRating(movie Movie, kp kpp.KP) error {
-	var duration string
+	movie.Kinopoisk = kp.Kinopoisk
+	movie.IMDb = kp.IMDb
 	if movie.Duration == "" {
-		duration = kp.Duration
-	} else {
-		duration = movie.Duration
+		movie.Duration = kp.Duration
 	}
-	return a.db.Update(Movie{ID: movie.ID, Kinopoisk: kp.Kinopoisk, IMDb: kp.IMDb, Duration: duration})
+	return a.db.Update(&movie)
 }
 
 func (a *App) updatePoster(movie Movie, poster string) error {
-	return a.db.Update(Movie{ID: movie.ID, Poster: poster})
+	movie.Poster = poster
+	return a.db.Update(&movie)
 }
 
-func (a *App) updatePosterURL(movie Movie, poster string) error {
-	return a.db.Update(Movie{ID: movie.ID, PosterURL: poster})
+func (a *App) updatePosterURL(movie Movie, posterURL string) error {
+	movie.PosterURL = posterURL
+	return a.db.Update(&movie)
 }
 
 func (a *App) getWithDownload() ([]Torrent, error) {
