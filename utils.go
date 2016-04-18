@@ -25,7 +25,7 @@ type config struct {
 		User     string `json:"user"`
 		Password string `json:"password"`
 		Dbname   string `json:"dbname"`
-		Sslmode  string `json:"sslmode"`
+		Sslmode  bool   `json:"sslmode"`
 	} `json:"postgresql"`
 	Address string `json:"address"`
 	Hd      string `json:"httpdir"`

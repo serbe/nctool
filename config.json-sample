@@ -7,7 +7,7 @@
     "user": "Pquser",
     "password": "Pqpassword",
     "dbname": "rssdb",
-    "sslmode": "disable"
+    "sslmode": false
   },
   "httpdir": "../ncrss/public/img/",
   "proxy": "http://185.29.173.195:80",

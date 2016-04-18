@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jinzhu/gorm"
 	"github.com/serbe/ncp"
+	"gopkg.in/pg.v4"
 )
 
 var (
@@ -37,7 +37,7 @@ func (a *App) get() error {
 		}
 		for _, topic := range topics {
 			_, err := a.getTorrentByHref(topic.Href)
-			if err == gorm.ErrRecordNotFound {
+			if err == pg.ErrNoRows {
 				film, err := a.net.ParseTopic(topic, a.debug)
 				if err == nil {
 					i++
