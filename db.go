@@ -32,11 +32,11 @@ import (
 // Poster        Имя файла постера
 // PosterURL     Сетевая ссылка на постер
 type Movie struct {
-	ID          int64    `sql:"id"`
+	ID          int      `sql:"id"`
 	Section     string   `sql:"section"`
 	Name        string   `sql:"name"`
 	EngName     string   `sql:"eng_name"`
-	Year        int64    `sql:"year"`
+	Year        int      `sql:"year"`
 	Genre       []string `sql:"genre"        pg:",array" `
 	Country     []string `sql:"country"      pg:",array"`
 	RawCountry  string   `sql:"raw_country"`
@@ -76,8 +76,8 @@ type Movie struct {
 // Seeders       Количество раздающих
 // Leechers      Количество скачивающих
 type Torrent struct {
-	ID            int64   `sql:"id"`
-	MovieID       int64   `sql:"movie_id"`
+	ID            int     `sql:"id"`
+	MovieID       int     `sql:"movie_id"`
 	DateCreate    string  `sql:"date_create"`
 	Href          string  `sql:"href"`
 	Torrent       string  `sql:"torrent"`
@@ -92,9 +92,9 @@ type Torrent struct {
 	Audio2        string  `sql:"audio2"`
 	Audio3        string  `sql:"audio3"`
 	Translation   string  `sql:"translation"`
-	Size          int64   `sql:"size"`
-	Seeders       int64   `sql:"seeders"`
-	Leechers      int64   `sql:"leechers"`
+	Size          int     `sql:"size"`
+	Seeders       int     `sql:"seeders"`
+	Leechers      int     `sql:"leechers"`
 }
 
 // App struct variables
@@ -202,7 +202,7 @@ func createSchema(db *pg.DB) error {
 	return nil
 }
 
-func (a *App) createMovie(ncf ncp.Film) (int64, error) {
+func (a *App) createMovie(ncf ncp.Film) (int, error) {
 	var (
 		movie Movie
 		kp    kpp.KP
@@ -273,7 +273,7 @@ func (a *App) getMovies() ([]Movie, error) {
 	return movies, err
 }
 
-func (a *App) getMovieID(ncf ncp.Film) (int64, error) {
+func (a *App) getMovieID(ncf ncp.Film) (int, error) {
 	var movie Movie
 	err := a.db.Model(&movie).Where("name = ? AND year = ?", ncf.Name, ncf.Year).First()
 	return movie.ID, err
@@ -285,7 +285,7 @@ func (a *App) getTorrentByHref(href string) (Torrent, error) {
 	return tor, err
 }
 
-func (a *App) updateTorrent(id int64, f ncp.Film) error {
+func (a *App) updateTorrent(id int, f ncp.Film) error {
 	var torrent Torrent
 	err := a.db.Model(&torrent).Where("id = ?", id).First()
 	if err != nil {
@@ -298,7 +298,7 @@ func (a *App) updateTorrent(id int64, f ncp.Film) error {
 	return a.db.Update(&torrent)
 }
 
-func (a *App) updateName(id int64, name string) error {
+func (a *App) updateName(id int, name string) error {
 	var movie Movie
 	err := a.db.Model(&movie).Where("id = ?", id).First()
 	if err != nil {
@@ -368,7 +368,7 @@ func (a *App) getRating(movie Movie) (kpp.KP, error) {
 	return kp, nil
 }
 
-func (a *App) getFilmByMovieID(id int64) (Torrent, error) {
+func (a *App) getFilmByMovieID(id int) (Torrent, error) {
 	var torrent Torrent
 	err := a.db.Model(&torrent).Where("movie_id = ?", id).First()
 	return torrent, err

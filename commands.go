@@ -27,7 +27,7 @@ var (
 func (a *App) get() error {
 	var (
 		err error
-		i   int64
+		i   int
 	)
 	for _, parseurl := range urls {
 		topics, err := a.net.ParseForumTree(parseurl, a.debug)
@@ -57,7 +57,7 @@ func (a *App) get() error {
 
 func (a *App) update() error {
 	var (
-		i        int64
+		i        int
 		err      error
 		torrents []Torrent
 	)
@@ -88,7 +88,7 @@ func (a *App) update() error {
 }
 
 func (a *App) name() error {
-	var i int64
+	var i int
 	movies, err := a.getMovies()
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (a *App) name() error {
 
 func (a *App) rating() error {
 	var (
-		i int64
+		i int
 	)
 	movies, err := a.getNoRating()
 	if err != nil {
@@ -137,7 +137,7 @@ func (a *App) rating() error {
 
 func (a *App) poster() error {
 	var (
-		i     int64
+		i     int
 		files []string
 	)
 	movies, err := a.getMovies()
