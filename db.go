@@ -150,7 +150,7 @@ func appInit() (*App, error) {
 func createSchema(db *pg.DB) error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS movies (
-			id bigserial,
+			id bigserial primary key,
 			section text,
 			name text,
 			eng_name text,
@@ -172,7 +172,7 @@ func createSchema(db *pg.DB) error {
 			poster_url text
         )`,
 		`CREATE TABLE IF NOT EXISTS torrents (
-			id bigserial,
+			id bigserial primary key,
 			movie_id bigint,
 			date_create text,
 			href text,
