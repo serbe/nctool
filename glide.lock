@@ -1,0 +1,22 @@
+hash: 7f03ff689d4d59ca983f9ee277b5f7b76a1be1747a6c04ea196347833dada93d
+updated: 2016-09-11T15:49:26.0264027+03:00
+imports:
+- name: github.com/jinzhu/inflection
+  version: 74387dc39a75e970e7a3ae6a3386b5bd2e5c5cff
+- name: github.com/nfnt/resize
+  version: 891127d8d1b52734debe1b3c3d7e747502b6c366
+- name: github.com/serbe/kpp
+  version: 50a13f0608309e75791d1bc619896fe96c28b361
+- name: github.com/serbe/ncp
+  version: 464f2b4bbf6ff8c37261c9761b1d424daaabf0b0
+- name: gopkg.in/bsm/ratelimit.v1
+  version: db14e161995a5177acef654cb0dd785e8ee8bc22
+- name: gopkg.in/pg.v4
+  version: c21a4b01cbee08f4b44c92cc18eeb06852a2e6de
+  subpackages:
+  - internal
+  - internal/parser
+  - internal/pool
+  - orm
+  - types
+testImports: []

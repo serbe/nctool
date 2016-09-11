@@ -1,7 +1,9 @@
 package orm
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"reflect"
 	"time"
 
@@ -10,27 +12,60 @@ import (
 
 var timeType = reflect.TypeOf((*time.Time)(nil)).Elem()
 
+type useQueryOne interface {
+	useQueryOne() bool
+}
+
 type Model interface {
 	Collection
 	ColumnScanner
 }
 
-func NewModel(vi interface{}) (Model, error) {
-	v := reflect.ValueOf(vi)
-	if !v.IsValid() {
-		return nil, errors.New("pg: NewModel(nil)")
+func NewModel(values ...interface{}) (Model, error) {
+	if len(values) > 1 {
+		return Scan(values...), nil
 	}
-	v = reflect.Indirect(v)
 
-	if v.Kind() == reflect.Slice {
-		elType := indirectType(v.Type().Elem())
-		if elType == timeType || elType.Kind() != reflect.Struct {
-			return &simpleModel{
+	v0 := values[0]
+	switch v0 := v0.(type) {
+	case Model:
+		return v0, nil
+	case sql.Scanner:
+		return Scan(v0), nil
+	}
+
+	v := reflect.ValueOf(v0)
+	if !v.IsValid() {
+		return nil, errors.New("pg: Model(nil)")
+	}
+	if v.Kind() != reflect.Ptr {
+		return nil, fmt.Errorf("pg: Model(non-pointer %T)", v0)
+	}
+	v = v.Elem()
+
+	switch v.Kind() {
+	case reflect.Struct:
+		return newStructTableModel(v)
+	case reflect.Slice:
+		typ := v.Type()
+		structType := indirectType(typ.Elem())
+		if structType.Kind() == reflect.Struct && structType != timeType {
+			m := sliceTableModel{
+				structTableModel: structTableModel{
+					table: Tables.Get(structType),
+					root:  v,
+				},
 				slice: v,
-				scan:  types.Scanner(elType),
+			}
+			m.init(typ)
+			return &m, nil
+		} else {
+			return &sliceModel{
+				slice: v,
+				scan:  types.Scanner(structType),
 			}, nil
 		}
 	}
 
-	return newTableModelValue(v)
+	return Scan(v0), nil
 }

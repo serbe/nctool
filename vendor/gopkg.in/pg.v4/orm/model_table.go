@@ -6,107 +6,95 @@ import (
 	"reflect"
 )
 
-type TableModel interface {
-	Table() *Table
-
+type tableModel interface {
 	Model
 
-	Join(string) *Join
-	GetJoin(string) *Join
-	GetJoins() []Join
-	AddJoin(Join) *Join
+	Table() *Table
+	AppendParam([]byte, string) ([]byte, bool)
 
-	Kind() reflect.Kind
+	Join(string, func(*Query) *Query) *join
+	GetJoin(string) *join
+	GetJoins() []join
+	AddJoin(join) *join
+
 	Root() reflect.Value
-	Path() []string
+	Index() []int
 	Bind(reflect.Value)
 	Value() reflect.Value
 
 	scanColumn(int, string, []byte) (bool, error)
 }
 
-func NewTableModel(v interface{}) (TableModel, error) {
+func newTableModel(v interface{}) (tableModel, error) {
 	switch v := v.(type) {
-	case TableModel:
+	case tableModel:
 		return v, nil
 	case reflect.Value:
 		return newTableModelValue(v)
 	default:
-		return newTableModelValue(reflect.ValueOf(v))
+		vv := reflect.ValueOf(v)
+		if !vv.IsValid() {
+			return nil, errors.New("pg: Model(nil)")
+		}
+		if vv.Kind() != reflect.Ptr {
+			return nil, fmt.Errorf("pg: Model(non-pointer %T)", v)
+		}
+		return newTableModelValue(vv.Elem())
 	}
 }
 
-func newTableModelValue(v reflect.Value) (TableModel, error) {
+func newTableModelValue(v reflect.Value) (tableModel, error) {
 	if !v.IsValid() {
-		return nil, errors.New("pg: NewModel(nil)")
+		return nil, errors.New("pg: Model(nil)")
 	}
 	v = reflect.Indirect(v)
 
-	if v.Kind() == reflect.Struct {
-		return &StructModel{
-			table: Tables.Get(v.Type()),
-			root:  v,
-			strct: v,
-		}, nil
-	}
-
-	if v.Kind() == reflect.Slice {
-		elType := indirectType(v.Type().Elem())
-		if elType.Kind() == reflect.Struct {
-			return &SliceModel{
-				StructModel: StructModel{
-					table: Tables.Get(elType),
+	switch v.Kind() {
+	case reflect.Struct:
+		return newStructTableModel(v)
+	case reflect.Slice:
+		structType := sliceElemType(v)
+		if structType.Kind() == reflect.Struct {
+			m := sliceTableModel{
+				structTableModel: structTableModel{
+					table: Tables.Get(structType),
 					root:  v,
 				},
 				slice: v,
-			}, nil
+			}
+			m.init(v.Type())
+			return &m, nil
 		}
 	}
 
-	return nil, fmt.Errorf("pg: NewModel(unsupported %s)", v.Type())
+	return nil, fmt.Errorf("pg: Model(unsupported %s)", v.Type())
 }
 
-func NewTableModelPath(root reflect.Value, path []string, table *Table) (TableModel, error) {
-	v := fieldByPath(root, path)
-	v = reflect.Indirect(v)
+func newTableModelIndex(root reflect.Value, index []int, table *Table) (tableModel, error) {
+	typ := typeByIndex(root.Type(), index)
 
-	if v.Kind() == reflect.Struct {
-		return &StructModel{
-			table: Tables.Get(v.Type()),
+	if typ.Kind() == reflect.Struct {
+		return &structTableModel{
+			table: Tables.Get(typ),
 			root:  root,
-			path:  path,
+			index: index,
 		}, nil
 	}
 
-	if v.Kind() == reflect.Slice {
-		elType := indirectType(v.Type().Elem())
-		if elType.Kind() == reflect.Struct {
-			return &SliceModel{
-				StructModel: StructModel{
-					table: Tables.Get(elType),
+	if typ.Kind() == reflect.Slice {
+		structType := indirectType(typ.Elem())
+		if structType.Kind() == reflect.Struct {
+			m := sliceTableModel{
+				structTableModel: structTableModel{
+					table: Tables.Get(structType),
 					root:  root,
-					path:  path,
+					index: index,
 				},
-			}, nil
-		}
-	}
-
-	return nil, fmt.Errorf("pg: NewTableModelPath(path %s on %s)", path, root.Type())
-}
-
-func fieldByPath(v reflect.Value, path []string) reflect.Value {
-	for _, name := range path {
-		if v.Kind() == reflect.Slice {
-			v = reflect.Zero(v.Type().Elem())
-		}
-
-		v = v.FieldByName(name)
-		if v.Kind() == reflect.Ptr {
-			if v.IsNil() {
-				v = reflect.New(v.Type().Elem())
 			}
-			v = v.Elem()
+			m.init(typ)
+			return &m, nil
 		}
 	}
-	return v
+
+	return nil, fmt.Errorf("pg: NewModel(%s)", typ)
 }

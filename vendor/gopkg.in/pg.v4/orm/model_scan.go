@@ -15,11 +15,19 @@ func Scan(values ...interface{}) valuesModel {
 	}
 }
 
+func (valuesModel) useQueryOne() bool {
+	return true
+}
+
 func (m valuesModel) NewModel() ColumnScanner {
 	return m
 }
 
 func (valuesModel) AddModel(_ ColumnScanner) error {
+	return nil
+}
+
+func (valuesModel) AfterSelect(_ DB) error {
 	return nil
 }
 

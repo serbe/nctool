@@ -1,10 +1,22 @@
 package orm
 
 import (
+	"fmt"
 	"strconv"
-
-	"gopkg.in/pg.v4/types"
 )
+
+func Select(db DB, model interface{}) error {
+	q := NewQuery(db, model)
+	m, ok := q.model.(*structTableModel)
+	if !ok {
+		return fmt.Errorf("Select expects struct, got %T", model)
+	}
+	if err := m.table.checkPKs(); err != nil {
+		return err
+	}
+	q.where = appendColumnAndValue(q.where, m.strct, m.table, m.table.PKs)
+	return q.Select()
+}
 
 type selectQuery struct {
 	*Query
@@ -13,28 +25,40 @@ type selectQuery struct {
 var _ QueryAppender = (*selectQuery)(nil)
 
 func (sel selectQuery) AppendQuery(b []byte, params ...interface{}) ([]byte, error) {
+	if len(sel.with) > 0 {
+		b = append(b, "WITH "...)
+		b = append(b, sel.with...)
+		b = append(b, ' ')
+	}
+
 	b = append(b, "SELECT "...)
 	if sel.columns == nil {
-		b = types.AppendField(b, sel.model.Table().ModelName, 1)
-		b = append(b, ".*"...)
+		b = sel.appendColumns(b)
 	} else {
 		b = append(b, sel.columns...)
 	}
 
-	b = append(b, " FROM "...)
-	b = append(b, sel.tables...)
+	if sel.haveTables() {
+		b = append(b, " FROM "...)
+		b = sel.appendTables(b)
+	}
 
-	if sel.join != nil {
+	if len(sel.join) > 0 {
 		b = append(b, ' ')
 		b = append(b, sel.join...)
 	}
 
-	if sel.where != nil {
+	if len(sel.where) > 0 {
 		b = append(b, " WHERE "...)
 		b = append(b, sel.where...)
 	}
 
-	if sel.order != nil {
+	if len(sel.group) > 0 {
+		b = append(b, " GROUP BY "...)
+		b = append(b, sel.group...)
+	}
+
+	if len(sel.order) > 0 {
 		b = append(b, " ORDER BY "...)
 		b = append(b, sel.order...)
 	}
@@ -50,4 +74,33 @@ func (sel selectQuery) AppendQuery(b []byte, params ...interface{}) ([]byte, err
 	}
 
 	return b, nil
+}
+
+func (sel selectQuery) appendColumns(b []byte) []byte {
+	if sel.model != nil {
+		return sel.appendModelColumns(b)
+	}
+
+	var ok bool
+	b, ok = sel.appendTableAlias(b)
+	if ok {
+		b = append(b, '.')
+	}
+	b = append(b, '*')
+	return b
+}
+
+func (sel selectQuery) appendModelColumns(b []byte) []byte {
+	alias, hasAlias := sel.appendTableAlias(nil)
+	for i, f := range sel.model.Table().Fields {
+		if i > 0 {
+			b = append(b, ", "...)
+		}
+		if hasAlias {
+			b = append(b, alias...)
+			b = append(b, '.')
+		}
+		b = append(b, f.ColName...)
+	}
+	return b
 }

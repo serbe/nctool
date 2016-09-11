@@ -4,18 +4,18 @@ import (
 	"io"
 	"time"
 
+	"gopkg.in/pg.v4/internal"
 	"gopkg.in/pg.v4/internal/pool"
 	"gopkg.in/pg.v4/orm"
 	"gopkg.in/pg.v4/types"
 )
-
-const defaultBackoff = 500 * time.Millisecond
 
 // Connect connects to a database using provided options.
 //
 // The returned DB is safe for concurrent use by multiple goroutines
 // and maintains its own connection pool.
 func Connect(opt *Options) *DB {
+	opt.init()
 	return &DB{
 		opt:  opt,
 		pool: newConnPool(opt),
@@ -65,13 +65,13 @@ func (db *DB) conn() (*pool.Conn, error) {
 }
 
 func (db *DB) initConn(cn *pool.Conn) error {
-	if db.opt.getSSL() {
-		if err := enableSSL(cn); err != nil {
+	if db.opt.SSL || db.opt.TLSConfig != nil {
+		if err := enableSSL(cn, db.opt.TLSConfig); err != nil {
 			return err
 		}
 	}
 
-	err := startup(cn, db.opt.getUser(), db.opt.getPassword(), db.opt.getDatabase())
+	err := startup(cn, db.opt.User, db.opt.Password, db.opt.Database)
 	if err != nil {
 		return err
 	}
@@ -96,11 +96,18 @@ func (db *DB) freeConn(cn *pool.Conn, err error) error {
 // It is rare to Close a DB, as the DB handle is meant to be
 // long-lived and shared between many goroutines.
 func (db *DB) Close() error {
+	st := db.pool.Stats()
+	if st.TotalConns != st.FreeConns {
+		internal.Logf(
+			"connection leaking detected: total_conns=%d free_conns=%d",
+			st.TotalConns, st.FreeConns,
+		)
+	}
 	return db.pool.Close()
 }
 
-// Exec executes a query ignoring returned rows. The params are for
-// any placeholder parameters in the query.
+// Exec executes a query ignoring returned rows. The params are for any
+// placeholder parameters in the query.
 func (db *DB) Exec(query interface{}, params ...interface{}) (res *types.Result, err error) {
 	for i := 0; ; i++ {
 		var cn *pool.Conn
@@ -114,15 +121,15 @@ func (db *DB) Exec(query interface{}, params ...interface{}) (res *types.Result,
 		db.freeConn(cn, err)
 
 		if i >= db.opt.MaxRetries {
-			return res, err
+			break
 		}
 		if !shouldRetry(err) {
-			return res, err
+			break
 		}
 
-		time.Sleep(defaultBackoff << uint(i))
+		time.Sleep(internal.RetryBackoff << uint(i))
 	}
-	return
+	return res, err
 }
 
 // ExecOne acts like Exec, but query must affect only one row. It
@@ -139,6 +146,7 @@ func (db *DB) ExecOne(query interface{}, params ...interface{}) (*types.Result, 
 // Query executes a query that returns rows, typically a SELECT.
 // The params are for any placeholder parameters in the query.
 func (db *DB) Query(model, query interface{}, params ...interface{}) (res *types.Result, err error) {
+	var coll orm.Collection
 	for i := 0; i < 3; i++ {
 		var cn *pool.Conn
 
@@ -147,33 +155,43 @@ func (db *DB) Query(model, query interface{}, params ...interface{}) (res *types
 			return nil, err
 		}
 
-		res, err = simpleQueryData(cn, model, query, params...)
+		res, coll, err = simpleQueryData(cn, model, query, params...)
 		db.freeConn(cn, err)
 
 		if i >= db.opt.MaxRetries {
-			return res, err
+			break
 		}
 		if !shouldRetry(err) {
-			return res, err
+			break
 		}
 
-		time.Sleep(defaultBackoff << uint(i))
+		time.Sleep(internal.RetryBackoff << uint(i))
 	}
-	return
+	if err != nil {
+		return nil, err
+	}
+	if coll != nil {
+		if err = coll.AfterSelect(db); err != nil {
+			return res, err
+		}
+	}
+	return res, nil
 }
 
 // QueryOne acts like Query, but query must return only one row. It
 // returns ErrNoRows error when query returns zero rows or
 // ErrMultiRows when query returns multiple rows.
 func (db *DB) QueryOne(model, query interface{}, params ...interface{}) (*types.Result, error) {
-	mod, err := newSingleModel(model)
+	mod, err := orm.NewModel(model)
 	if err != nil {
 		return nil, err
 	}
+
 	res, err := db.Query(mod, query, params...)
 	if err != nil {
 		return nil, err
 	}
+
 	return assertOneAffected(res)
 }
 
@@ -190,12 +208,12 @@ func (db *DB) Listen(channels ...string) (*Listener, error) {
 }
 
 // CopyFrom copies data from reader to a table.
-func (db *DB) CopyFrom(r io.Reader, query interface{}, params ...interface{}) (*types.Result, error) {
+func (db *DB) CopyFrom(reader io.Reader, query interface{}, params ...interface{}) (*types.Result, error) {
 	cn, err := db.conn()
 	if err != nil {
 		return nil, err
 	}
-	res, err := copyFrom(cn, r, query, params...)
+	res, err := copyFrom(cn, reader, query, params...)
 	if err != nil {
 		db.freeConn(cn, err)
 		return nil, err
@@ -205,7 +223,7 @@ func (db *DB) CopyFrom(r io.Reader, query interface{}, params ...interface{}) (*
 }
 
 // CopyTo copies data from a table to writer.
-func (db *DB) CopyTo(w io.Writer, query interface{}, params ...interface{}) (*types.Result, error) {
+func (db *DB) CopyTo(writer io.Writer, query interface{}, params ...interface{}) (*types.Result, error) {
 	cn, err := db.conn()
 	if err != nil {
 		return nil, err
@@ -226,31 +244,37 @@ func (db *DB) CopyTo(w io.Writer, query interface{}, params ...interface{}) (*ty
 		return nil, err
 	}
 
-	res, err := readCopyData(cn, w)
+	res, err := readCopyData(cn, writer)
 	if err != nil {
 		db.freeConn(cn, err)
 		return nil, err
 	}
 
+	db.pool.Put(cn)
 	return res, nil
 }
 
 // Model returns new query for the model.
-func (db *DB) Model(model interface{}) *orm.Query {
-	return orm.NewQuery(db, model)
+func (db *DB) Model(model ...interface{}) *orm.Query {
+	return orm.NewQuery(db, model...)
 }
 
-// Create inserts the model into database.
-func (db *DB) Create(model interface{}) error {
-	return orm.Create(db, model)
+// Select selects the model by primary key.
+func (db *DB) Select(model interface{}) error {
+	return orm.Select(db, model)
 }
 
-// Update updates the model in database.
+// Create inserts the model updating primary keys if they are empty.
+func (db *DB) Create(model ...interface{}) error {
+	return orm.Create(db, model...)
+}
+
+// Update updates the model by primary key.
 func (db *DB) Update(model interface{}) error {
 	return orm.Update(db, model)
 }
 
-// Delete deletes the model from database.
+// Delete deletes the model by primary key.
 func (db *DB) Delete(model interface{}) error {
 	return orm.Delete(db, model)
 }
@@ -293,53 +317,21 @@ func simpleQuery(cn *pool.Conn, query interface{}, params ...interface{}) (*type
 		return nil, err
 	}
 
-	res, err := readSimpleQuery(cn)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return readSimpleQuery(cn)
 }
 
-func simpleQueryData(cn *pool.Conn, model, query interface{}, params ...interface{}) (*types.Result, error) {
+func simpleQueryData(
+	cn *pool.Conn, model, query interface{}, params ...interface{},
+) (*types.Result, orm.Collection, error) {
 	if err := writeQueryMsg(cn.Wr, query, params...); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if err := cn.Wr.Flush(); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	res, err := readSimpleQueryData(cn, model)
-	if err != nil {
-		return nil, err
-	}
-
-	return res, nil
-}
-
-type singleModel struct {
-	orm.Model
-}
-
-var _ orm.Collection = (*singleModel)(nil)
-
-func newSingleModel(mod interface{}) (*singleModel, error) {
-	model, ok := mod.(orm.Model)
-	if !ok {
-		var err error
-		model, err = orm.NewModel(mod)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return &singleModel{
-		Model: model,
-	}, nil
-}
-
-func (m *singleModel) AddModel(_ orm.ColumnScanner) error {
-	return nil
+	return readSimpleQueryData(cn, model)
 }
 
 func assertOne(l int) error {
@@ -391,5 +383,5 @@ func copyFrom(cn *pool.Conn, r io.Reader, query interface{}, params ...interface
 		return nil, err
 	}
 
-	return readReadyForQueryOrError(cn)
+	return readReadyForQuery(cn)
 }

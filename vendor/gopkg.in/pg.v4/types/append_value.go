@@ -8,9 +8,7 @@ import (
 	"time"
 )
 
-var (
-	appenderType = reflect.TypeOf((*ValueAppender)(nil)).Elem()
-)
+var appenderType = reflect.TypeOf((*ValueAppender)(nil)).Elem()
 
 type AppenderFunc func([]byte, reflect.Value, int) []byte
 
@@ -48,6 +46,10 @@ func init() {
 }
 
 func Appender(typ reflect.Type) AppenderFunc {
+	return appender(typ, false)
+}
+
+func appender(typ reflect.Type, pgArray bool) AppenderFunc {
 	if typ == timeType {
 		return appendTimeValue
 	}
@@ -61,12 +63,28 @@ func Appender(typ reflect.Type) AppenderFunc {
 	}
 
 	kind := typ.Kind()
-
-	if kind == reflect.Slice && typ.Elem().Kind() == reflect.Uint8 {
-		return appendBytesValue
+	switch kind {
+	case reflect.Ptr:
+		return ptrAppenderFunc(typ)
+	case reflect.Slice:
+		if typ.Elem().Kind() == reflect.Uint8 {
+			return appendBytesValue
+		}
+		if pgArray {
+			return ArrayAppender(typ)
+		}
 	}
-
 	return valueAppenders[kind]
+}
+
+func ptrAppenderFunc(typ reflect.Type) AppenderFunc {
+	appender := Appender(typ.Elem())
+	return func(b []byte, v reflect.Value, quote int) []byte {
+		if v.IsNil() {
+			return AppendNull(b, quote)
+		}
+		return appender(b, v.Elem(), quote)
+	}
 }
 
 func appendValue(b []byte, v reflect.Value, quote int) []byte {
@@ -81,8 +99,8 @@ func appendValue(b []byte, v reflect.Value, quote int) []byte {
 	return appender(b, v, quote)
 }
 
-func appendIfaceValue(dst []byte, v reflect.Value, quote int) []byte {
-	return Append(dst, v.Interface(), quote)
+func appendIfaceValue(b []byte, v reflect.Value, quote int) []byte {
+	return Append(b, v.Interface(), quote)
 }
 
 func appendBoolValue(b []byte, v reflect.Value, _ int) []byte {
@@ -130,11 +148,7 @@ func appendTimeValue(b []byte, v reflect.Value, quote int) []byte {
 }
 
 func appendAppenderValue(b []byte, v reflect.Value, quote int) []byte {
-	b, err := v.Interface().(ValueAppender).AppendValue(b, quote)
-	if err != nil {
-		return appendError(b, err)
-	}
-	return b
+	return appendAppender(b, v.Interface().(ValueAppender), quote)
 }
 
 func appendDriverValuerValue(b []byte, v reflect.Value, quote int) []byte {
