@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/nfnt/resize"
 	"github.com/serbe/ncp"
@@ -91,7 +92,11 @@ func (a *App) getPoster(url string) (string, error) {
 		img    image.Image
 		poster string
 	)
-	resp, err := http.Get(url)
+	timeout := time.Duration(5 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	resp, err := client.Get(url)
 	if err != nil {
 		return poster, err
 	}
