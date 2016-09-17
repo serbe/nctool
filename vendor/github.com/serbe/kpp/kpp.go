@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const (
@@ -35,7 +36,11 @@ func urlEncoded(str string) (string, error) {
 
 func getHTML(url string) ([]byte, error) {
 	var body []byte
-	resp, err := http.Get(url)
+	timeout := time.Duration(5 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	resp, err := client.Get(url)
 	if err != nil {
 		return body, err
 	}
