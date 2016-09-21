@@ -22,15 +22,15 @@ type config struct {
 		Login    string `json:"login"`
 		Password string `json:"password"`
 	} `json:"nnmclub"`
-	Pq struct {
+	PqCfg struct {
 		User     string `json:"user"`
 		Password string `json:"password"`
 		Dbname   string `json:"dbname"`
 		Sslmode  bool   `json:"sslmode"`
 	} `json:"postgresql"`
 	Address string `json:"address"`
-	Hd      string `json:"httpdir"`
-	Px      string `json:"proxy"`
+	HhhpDir string `json:"httpdir"`
+	Proxy   string `json:"proxy"`
 	Debug   bool   `json:"debug"`
 	DebugDB bool   `json:"debugdb"`
 }
@@ -148,7 +148,7 @@ func existsFile(path string) bool {
 	return true
 }
 
-func stringInSlice(list []string, s string) int {
+func findStringInSlice(list []string, s string) int {
 	for i, b := range list {
 		if b == s {
 			return i
@@ -158,7 +158,7 @@ func stringInSlice(list []string, s string) int {
 }
 
 func deleteFromSlice(list []string, s string) []string {
-	sis := stringInSlice(list, s)
+	sis := findStringInSlice(list, s)
 	list = append(list[:sis], list[sis+1:]...)
 	return list
 }

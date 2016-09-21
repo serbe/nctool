@@ -116,10 +116,10 @@ func appInit() (*App, error) {
 			log.Fatal("Error getConfig ", err)
 		}
 		db := pg.Connect(&pg.Options{
-			Database: conf.Pq.Dbname,
-			User:     conf.Pq.User,
-			Password: conf.Pq.Password,
-			SSL:      conf.Pq.Sslmode,
+			Database: conf.PqCfg.Dbname,
+			User:     conf.PqCfg.User,
+			Password: conf.PqCfg.Password,
+			SSL:      conf.PqCfg.Sslmode,
 		})
 		// err = db.Close()
 		// if err != nil {
@@ -132,16 +132,16 @@ func appInit() (*App, error) {
 
 		app.db = db
 
-		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Px)
+		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Proxy)
 		if err != nil {
 			log.Println("net init ", err)
 			return app, err
 		}
-		_ = createDir(conf.Hd)
+		_ = createDir(conf.HhhpDir)
 
 		app.net = inetConnect
-		app.hd = conf.Hd
-		app.px = conf.Px
+		app.hd = conf.HhhpDir
+		app.px = conf.Proxy
 		app.debug = conf.Debug
 	}
 	return app, nil
