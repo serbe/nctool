@@ -19,7 +19,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	tree, err := nnm.ParseForumTree("http://nnm-club.me/forum/viewforum.php?f=266")
+	tree, err := nnm.ParseForumTree("http://nnmclub.to/forum/viewforum.php?f=266")
 	if err != nil {
 		panic(err)
 	}

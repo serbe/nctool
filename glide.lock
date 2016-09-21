@@ -1,5 +1,5 @@
 hash: 7f03ff689d4d59ca983f9ee277b5f7b76a1be1747a6c04ea196347833dada93d
-updated: 2016-09-17T20:57:15.7640676+03:00
+updated: 2016-09-21T18:26:15.5374716+03:00
 imports:
 - name: github.com/jinzhu/inflection
   version: 74387dc39a75e970e7a3ae6a3386b5bd2e5c5cff
@@ -8,7 +8,7 @@ imports:
 - name: github.com/serbe/kpp
   version: 070f74eb54745699c8f8b0235810cbd89098e402
 - name: github.com/serbe/ncp
-  version: 464f2b4bbf6ff8c37261c9761b1d424daaabf0b0
+  version: 7638c9e8221197bc9b7338dfb689d766dac39832
 - name: gopkg.in/bsm/ratelimit.v1
   version: db14e161995a5177acef654cb0dd785e8ee8bc22
 - name: gopkg.in/pg.v4

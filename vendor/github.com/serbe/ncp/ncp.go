@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // NCp values:
@@ -107,7 +108,9 @@ type Film struct {
 
 // Init nnmc with login password
 func Init(login string, password string, baseAddress string, proxy string) (*NCp, error) {
-	var client http.Client
+	client := http.Client{
+		Timeout: time.Duration(5 * time.Second),
+	}
 	if proxy != "" {
 		os.Setenv("HTTP_PROXY", proxy)
 	}
@@ -301,10 +304,10 @@ func replaceDate(s string) string {
 	return s
 }
 
-func caseInsensitiveContains(s, substr string) bool {
-	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
-	return strings.Contains(s, substr)
-}
+// func caseInsensitiveContains(s, substr string) bool {
+// 	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
+// 	return strings.Contains(s, substr)
+// }
 
 func cleanStr(str string) string {
 	var reSpan = regexp.MustCompile("<span .*?>")
