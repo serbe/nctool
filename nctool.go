@@ -21,7 +21,7 @@ Commands:
 	poster  получение постеров`)
 		os.Exit(0)
 	}
-	if containCommand(args) == false {
+	if !containCommand(args) {
 		fmt.Println(`comand not found: use "nctool help"`)
 		os.Exit(1)
 	}

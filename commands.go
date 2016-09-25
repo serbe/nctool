@@ -151,7 +151,7 @@ func (a *App) poster() error {
 	for _, movie := range movies {
 		if movie.PosterURL != "" {
 			if movie.Poster != "" {
-				if existsFile(a.hd+movie.Poster) == false {
+				if !existsFile(a.hd + movie.Poster) {
 					poster, err := a.getPoster(movie.PosterURL)
 					if err == nil {
 						i++

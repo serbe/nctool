@@ -87,54 +87,69 @@ func (a *App) checkName(ncf ncp.Film) ncp.Film {
 	return ncf
 }
 
-func (a *App) getPoster(url string) (string, error) {
-	var (
-		img    image.Image
-		poster string
-	)
+func getFromURL(url string) ([]byte, error) {
 	timeout := time.Duration(5 * time.Second)
 	client := http.Client{
 		Timeout: timeout,
 	}
 	resp, err := client.Get(url)
 	if err != nil {
-		return poster, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return poster, err
-	}
+	return body, err
+}
+
+func decodeImage(url string, body []byte) (image.Image, error) {
+	var img image.Image
 	ext := url[len(url)-3:]
 	if ext == "jpg" {
-		img, err = jpeg.Decode(bytes.NewReader(body))
+		img, err := jpeg.Decode(bytes.NewReader(body))
 		if err != nil {
-			return poster, err
+			return img, err
 		}
 	} else if ext == "png" {
-		img, err = png.Decode(bytes.NewReader(body))
+		img, err := png.Decode(bytes.NewReader(body))
 		if err != nil {
-			return poster, err
+			return img, err
 		}
 	} else {
-		return poster, fmt.Errorf("Not supportet extension")
+		return img, fmt.Errorf("Not supportet extension")
 	}
-	m := resize.Resize(150, 0, img, resize.Lanczos3)
-	outName := strings.Replace(url, "/", "", -1)
-	outName = strings.Replace(outName, ":", "", -1)
-	if len(outName) < 20 {
-		outName = outName[:len(outName)-4]
+	img = resize.Resize(150, 0, img, resize.Lanczos3)
+	return img, nil
+}
+
+func generateName(url string) string {
+	name := strings.Replace(url, "/", "", -1)
+	name = strings.Replace(name, ":", "", -1)
+	if len(name) < 20 {
+		name = name[:len(name)-4]
 	} else {
-		outName = outName[len(outName)-20 : len(outName)-4]
+		name = name[len(name)-20 : len(name)-4]
 	}
-	poster = outName + ".jpg"
-	out, err := os.Create(a.hd + poster)
+	name = name + ".jpg"
+	return name
+}
+
+func (a *App) getPoster(url string) (string, error) {
+	body, err := getFromURL(url)
 	if err != nil {
-		return poster, err
+		return "", err
+	}
+	img, err := decodeImage(url, body)
+	if err != nil {
+		return "", err
+	}
+	posterName := generateName(url)
+	out, err := os.Create(a.hd + posterName)
+	if err != nil {
+		return "", err
 	}
 	defer out.Close()
-	jpeg.Encode(out, m, nil)
-	return poster, nil
+	jpeg.Encode(out, img, nil)
+	return posterName, nil
 }
 
 func existsFile(path string) bool {
