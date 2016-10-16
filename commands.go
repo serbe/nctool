@@ -11,13 +11,6 @@ import (
 )
 
 var (
-	commands = []string{
-		"get",
-		"update",
-		"name",
-		"rating",
-		"poster",
-	}
 	urls = []string{
 		"/forum/viewforum.php?f=218",
 		"/forum/viewforum.php?f=270",

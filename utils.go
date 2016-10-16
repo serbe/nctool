@@ -56,17 +56,6 @@ func contain(args []string, str string) bool {
 	return result
 }
 
-func containCommand(args []string) bool {
-	result := false
-	for _, item := range commands {
-		if contain(args, item) {
-			result = true
-			return result
-		}
-	}
-	return result
-}
-
 func exit(err error) {
 	if err == nil {
 		os.Exit(0)
