@@ -13,6 +13,13 @@ func main() {
 	getRating := flag.Bool("rating", false, "Получение рейтинга Кинопоиска и IMDb")
 	getPosters := flag.Bool("poster", false, "Получение постеров")
 
+	flag.Parse()
+
+	if flag.NFlag() == 0 {
+		log.Println("Use nctool -h to get help")
+		os.Exit(0)
+	}
+
 	app, err := appInit()
 	if err != nil {
 		os.Exit(1)
