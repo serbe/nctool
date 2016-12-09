@@ -29,7 +29,7 @@ type config struct {
 		Sslmode  bool   `json:"sslmode"`
 	} `json:"postgresql"`
 	Address string `json:"address"`
-	HhhpDir string `json:"httpdir"`
+	ImgDir   string `json:"imgdir"`
 	Proxy   string `json:"proxy"`
 	Debug   bool   `json:"debug"`
 	DebugDB bool   `json:"debugdb"`
@@ -106,8 +106,11 @@ func decodeImage(url string, body []byte) (image.Image, error) {
 	} else {
 		return img, fmt.Errorf("Not supportet extension")
 	}
-	img = resize.Resize(150, 0, img, resize.Lanczos3)
-	return img, nil
+	if img == nil {
+		return nil, fmt.Errorf("img is nil")
+	}
+	n := resize.Resize(150, 0, img, resize.Lanczos3)
+	return n, nil
 }
 
 func generateName(url string) string {
