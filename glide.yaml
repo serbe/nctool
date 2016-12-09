@@ -1,6 +1,0 @@
-package: github.com/serbe/nctool
-import:
-- package: github.com/nfnt/resize
-- package: github.com/serbe/kpp
-- package: github.com/serbe/ncp
-- package: gopkg.in/pg.v4

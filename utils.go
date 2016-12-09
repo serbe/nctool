@@ -29,7 +29,7 @@ type config struct {
 		Sslmode  bool   `json:"sslmode"`
 	} `json:"postgresql"`
 	Address string `json:"address"`
-	ImgDir   string `json:"imgdir"`
+	ImgDir  string `json:"imgdir"`
 	Proxy   string `json:"proxy"`
 	Debug   bool   `json:"debug"`
 	DebugDB bool   `json:"debugdb"`

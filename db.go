@@ -5,6 +5,8 @@ import (
 	"log"
 	"strings"
 
+	"time"
+
 	"github.com/serbe/kpp"
 	"github.com/serbe/ncp"
 	"gopkg.in/pg.v4"
@@ -76,25 +78,27 @@ type Movie struct {
 // Seeders       Количество раздающих
 // Leechers      Количество скачивающих
 type Torrent struct {
-	ID            int     `sql:"id"`
-	MovieID       int     `sql:"movie_id"`
-	DateCreate    string  `sql:"date_create"`
-	Href          string  `sql:"href"`
-	Torrent       string  `sql:"torrent"`
-	Magnet        string  `sql:"magnet"`
-	NNM           float64 `sql:"nnm"`
-	SubtitlesType string  `sql:"subtitles_type"`
-	Subtitles     string  `sql:"subtitles"`
-	Video         string  `sql:"video"`
-	Quality       string  `sql:"quality"`
-	Resolution    string  `sql:"resolution"`
-	Audio1        string  `sql:"audio1"`
-	Audio2        string  `sql:"audio2"`
-	Audio3        string  `sql:"audio3"`
-	Translation   string  `sql:"translation"`
-	Size          int     `sql:"size"`
-	Seeders       int     `sql:"seeders"`
-	Leechers      int     `sql:"leechers"`
+	ID            int       `sql:"id"`
+	MovieID       int       `sql:"movie_id"`
+	DateCreate    string    `sql:"date_create"`
+	Href          string    `sql:"href"`
+	Torrent       string    `sql:"torrent"`
+	Magnet        string    `sql:"magnet"`
+	NNM           float64   `sql:"nnm"`
+	SubtitlesType string    `sql:"subtitles_type"`
+	Subtitles     string    `sql:"subtitles"`
+	Video         string    `sql:"video"`
+	Quality       string    `sql:"quality"`
+	Resolution    string    `sql:"resolution"`
+	Audio1        string    `sql:"audio1"`
+	Audio2        string    `sql:"audio2"`
+	Audio3        string    `sql:"audio3"`
+	Translation   string    `sql:"translation"`
+	Size          int       `sql:"size"`
+	Seeders       int       `sql:"seeders"`
+	Leechers      int       `sql:"leechers"`
+	CreatedAt     time.Time `sql:"created_at"`
+	UpdatedAt     time.Time `sql:"updated_at"`
 }
 
 // App struct variables
@@ -170,6 +174,8 @@ func createSchema(db *pg.DB) error {
 			imdb double precision,
 			poster text,
 			poster_url text
+			created_at time
+			updated_at time
         )`,
 		`CREATE TABLE IF NOT EXISTS torrents (
 			id bigserial primary key,
