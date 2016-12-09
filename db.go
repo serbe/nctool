@@ -132,15 +132,15 @@ func appInit() (*App, error) {
 
 		app.db = db
 
-		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Proxy)
+		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Proxy, conf.Debug)
 		if err != nil {
 			log.Println("net init ", err)
 			return app, err
 		}
-		_ = createDir(conf.HhhpDir)
+		_ = createDir(conf.ImgDir)
 
 		app.net = inetConnect
-		app.hd = conf.HhhpDir
+		app.hd = conf.ImgDir
 		app.px = conf.Proxy
 		app.debug = conf.Debug
 	}
@@ -344,7 +344,7 @@ func (a *App) getMovieName(ncf ncp.Film) (string, error) {
 	return "", fmt.Errorf("Name not found")
 }
 
-func (a *App) getLowerName(movie Movie) (string, error) {
+func (a *App) getUpperName(movie Movie) (string, error) {
 	var m Movie
 	err := a.db.Model(&m).Where("upper(name) = ? and year = ? and name != ?", strings.ToUpper(movie.Name), movie.Year, strings.ToUpper(movie.Name)).First()
 	return m.Name, err
