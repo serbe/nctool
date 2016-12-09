@@ -34,26 +34,28 @@ import (
 // Poster        Имя файла постера
 // PosterURL     Сетевая ссылка на постер
 type Movie struct {
-	ID          int      `sql:"id"`
-	Section     string   `sql:"section"`
-	Name        string   `sql:"name"`
-	EngName     string   `sql:"eng_name"`
-	Year        int      `sql:"year"`
-	Genre       []string `sql:"genre"        pg:",array" `
-	Country     []string `sql:"country"      pg:",array"`
-	RawCountry  string   `sql:"raw_country"`
-	Director    []string `sql:"director"     pg:",array"`
-	Producer    []string `sql:"producer"     pg:",array"`
-	Actor       []string `sql:"actor"        pg:",array"`
-	Description string   `sql:"description"`
-	Age         string   `sql:"age"`
-	ReleaseDate string   `sql:"release_date"`
-	RussianDate string   `sql:"russian_date"`
-	Duration    string   `sql:"duration"`
-	Kinopoisk   float64  `sql:"kinopoisk"`
-	IMDb        float64  `sql:"imdb"`
-	Poster      string   `sql:"poster"`
-	PosterURL   string   `sql:"poster_url"`
+	ID          int       `sql:"id"`
+	Section     string    `sql:"section"`
+	Name        string    `sql:"name"`
+	EngName     string    `sql:"eng_name"`
+	Year        int       `sql:"year"`
+	Genre       []string  `sql:"genre"        pg:",array" `
+	Country     []string  `sql:"country"      pg:",array"`
+	RawCountry  string    `sql:"raw_country"`
+	Director    []string  `sql:"director"     pg:",array"`
+	Producer    []string  `sql:"producer"     pg:",array"`
+	Actor       []string  `sql:"actor"        pg:",array"`
+	Description string    `sql:"description"`
+	Age         string    `sql:"age"`
+	ReleaseDate string    `sql:"release_date"`
+	RussianDate string    `sql:"russian_date"`
+	Duration    string    `sql:"duration"`
+	Kinopoisk   float64   `sql:"kinopoisk"`
+	IMDb        float64   `sql:"imdb"`
+	Poster      string    `sql:"poster"`
+	PosterURL   string    `sql:"poster_url"`
+	CreatedAt   time.Time `sql:"created_at"`
+	UpdatedAt   time.Time `sql:"updated_at"`
 }
 
 // Torrent all values
