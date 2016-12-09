@@ -12,8 +12,14 @@ import (
 
 var (
 	urls = []string{
-		"/forum/viewforum.php?f=218",
-		"/forum/viewforum.php?f=270",
+		"/forum/viewforum.php?f=218", // Зарубежные Новинки (HD*Rip/LQ, DVDRip)
+		"/forum/viewforum.php?f=221", // Отечественные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=225", // Зарубежные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=230", // Отечественные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=231", // Зарубежные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=270", // Отечественные Новинки (HD*Rip/LQ, DVDRip)
+		"/forum/viewforum.php?f=319", // Зарубежная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=320", // Отечественная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
 	}
 )
 
@@ -23,7 +29,7 @@ func (a *App) get() error {
 		i   int
 	)
 	for _, parseurl := range urls {
-		topics, err := a.net.ParseForumTree(parseurl, a.debug)
+		topics, err := a.net.ParseForumTree(parseurl)
 		if err != nil {
 			log.Println("ParseForumTree ", parseurl, err)
 			return err
@@ -31,7 +37,7 @@ func (a *App) get() error {
 		for _, topic := range topics {
 			_, err := a.getTorrentByHref(topic.Href)
 			if err == pg.ErrNoRows {
-				film, err := a.net.ParseTopic(topic, a.debug)
+				film, err := a.net.ParseTopic(topic)
 				if err == nil {
 					i++
 					film = a.checkName(film)
@@ -62,7 +68,7 @@ func (a *App) update() error {
 	for _, tor := range torrents {
 		var topic ncp.Topic
 		topic.Href = tor.Href
-		f, err := a.net.ParseTopic(topic, false)
+		f, err := a.net.ParseTopic(topic)
 		if err == nil {
 			if f.NNM != tor.NNM || f.Seeders != tor.Seeders || f.Leechers != tor.Leechers || f.Torrent != tor.Torrent {
 				i++
@@ -88,7 +94,7 @@ func (a *App) name() error {
 	}
 	for _, movie := range movies {
 		if movie.Name == strings.ToUpper(movie.Name) {
-			lowerName, err := a.getLowerName(movie)
+			lowerName, err := a.getUpperName(movie)
 			if err == nil {
 				i++
 				a.updateName(movie.ID, lowerName)
@@ -165,7 +171,7 @@ func (a *App) poster() error {
 			if err == nil {
 				var topic ncp.Topic
 				topic.Href = film.Href
-				tempFilm, err := a.net.ParseTopic(topic, a.debug)
+				tempFilm, err := a.net.ParseTopic(topic)
 				if err == nil {
 					if tempFilm.Poster != "" {
 						err = a.updatePosterURL(movie, tempFilm.Poster)

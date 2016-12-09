@@ -6,10 +6,10 @@
   "postgresql": {
     "user": "Pquser",
     "password": "Pqpassword",
-    "dbname": "rssdb",
+    "dbname": "dbname",
     "sslmode": false
   },
-  "httpdir": "../ncrss/public/img/",
+  "imgdir": "../ncrss/public/img/",
   "proxy": "http://185.29.173.195:80",
   "address": "http://nnmclub.to",
   "debug": false,
