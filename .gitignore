@@ -27,3 +27,5 @@ config.json
 nctool
 *.exe~
 debug
+acc.gb
+./nctool
