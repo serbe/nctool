@@ -22,10 +22,10 @@ type config struct {
 		Login    string `json:"login"`
 		Password string `json:"password"`
 	} `json:"nnmclub"`
-	PqCfg struct {
+	Db struct {
 		User     string `json:"user"`
 		Password string `json:"password"`
-		Dbname   string `json:"dbname"`
+		Name     string `json:"name"`
 		Sslmode  bool   `json:"sslmode"`
 	} `json:"postgresql"`
 	Address string `json:"address"`

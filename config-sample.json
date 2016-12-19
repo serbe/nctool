@@ -6,7 +6,7 @@
   "postgresql": {
     "user": "Pquser",
     "password": "Pqpassword",
-    "dbname": "dbname",
+    "name": "dbname",
     "sslmode": false
   },
   "imgdir": "../ncrss/public/img/",
