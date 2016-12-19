@@ -9,7 +9,7 @@ import (
 	"github.com/serbe/kpp"
 	"github.com/serbe/ncp"
 
-	_ "github.com/lib/pq"
+	"github.com/lib/pq"
 )
 
 // Movie all values
@@ -105,11 +105,12 @@ type Torrent struct {
 
 // App struct variables
 type App struct {
-	db    *sql.DB
-	net   *ncp.NCp
-	hd    string
-	px    string
-	debug bool
+	db      *sql.DB
+	net     *ncp.NCp
+	hd      string
+	px      string
+	debug   bool
+	debugDB bool
 }
 
 var app *App
@@ -131,12 +132,12 @@ func appInit() (*App, error) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		err = createSchema(db)
+
+		app.db = db
+		err = app.createSchema()
 		if err != nil {
 			log.Fatal("Error createSchema ", err)
 		}
-
-		app.db = db
 
 		inetConnect, err := ncp.Init(conf.Nnm.Login, conf.Nnm.Password, conf.Address, conf.Proxy, conf.Debug)
 		if err != nil {
@@ -149,11 +150,18 @@ func appInit() (*App, error) {
 		app.hd = conf.ImgDir
 		app.px = conf.Proxy
 		app.debug = conf.Debug
+		app.debugDB = conf.DebugDB
 	}
 	return app, nil
 }
 
-func createSchema(db *sql.DB) error {
+func (a *App) logDB(s string) {
+	if a.debugDB {
+		log.Println(s)
+	}
+}
+
+func (a *App) createSchema() error {
 	queries := []string{
 		`CREATE TABLE IF NOT EXISTS movies (
 			id bigserial primary key,
@@ -176,8 +184,8 @@ func createSchema(db *sql.DB) error {
 			imdb double precision,
 			poster text,
 			poster_url text,
-			created_at time,
-			updated_at time
+			created_at timestamp,
+			updated_at timestamp
         )`,
 		`CREATE TABLE IF NOT EXISTS torrents (
 			id bigserial primary key,
@@ -199,12 +207,13 @@ func createSchema(db *sql.DB) error {
 			size int,
 			seeders int,
 			leechers int,
-			created_at time,
-			updated_at time
+			created_at timestamp,
+			updated_at timestamp
 		)`,
 	}
 	for _, q := range queries {
-		_, err := db.Exec(q)
+		a.logDB(q)
+		_, err := a.db.Exec(q)
 		if err != nil {
 			return err
 		}
@@ -248,7 +257,7 @@ func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 		RETURNING
 			id
 	`,
-		m.Section, m.Name, m.EngName, m.Year, m.Genre, m.Country, m.RawCountry, m.Director, m.Producer, m.Actor, m.Description, m.Age, m.ReleaseDate, m.RussianDate, m.Duration, m.Kinopoisk, m.IMDb, m.Poster, m.PosterURL,
+		m.Section, m.Name, m.EngName, m.Year, pq.Array(m.Genre), pq.Array(m.Country), m.RawCountry, pq.Array(m.Director), pq.Array(m.Producer), pq.Array(m.Actor), m.Description, m.Age, m.ReleaseDate, m.RussianDate, m.Duration, m.Kinopoisk, m.IMDb, m.Poster, m.PosterURL,
 	).Scan(&id)
 	return id, err
 }
@@ -263,6 +272,7 @@ func (a *App) createTorrent(ncf ncp.Film) (int64, error) {
 	if err != nil {
 		movieID, err := a.createMovie(ncf)
 		if err != nil {
+			log.Println("createMovie ", err)
 			return 0, err
 		}
 		t.MovieID = movieID
@@ -333,7 +343,8 @@ func (a *App) updateTorrent(id int64, f ncp.Film) error {
 			nnm = $2,
 			seeders = $3,
 			leechers = $4,
-			torrent = $5
+			torrent = $5,
+			updated_at = now()
 		WHERE
 			id = $1
 	`, id, t.NNM, t.Seeders, t.Leechers, t.Torrent)
@@ -352,6 +363,7 @@ func (a *App) updateName(id int64, name string) error {
 			moviess
 		SET
 			name = $2,
+			updated_at = now()
 		WHERE
 			id = $1
 	`, id, m.Name)
@@ -371,6 +383,7 @@ func (a *App) updateRating(m Movie, kp kpp.KP) error {
 			kinopoisk = $2,
 			imdb = $3,
 			duration = $4,
+			updated_at = now()
 		WHERE
 			id = $1
 	`, m.ID, m.Kinopoisk, m.IMDb, m.Duration)
@@ -383,7 +396,8 @@ func (a *App) updatePoster(m Movie, poster string) error {
 		UPDATE
 			moviess
 		SET
-			poster = $2
+			poster = $2,
+			updated_at = now()
 		WHERE
 			id = $1
 	`, m.ID, m.Poster)
@@ -396,7 +410,8 @@ func (a *App) updatePosterURL(m Movie, posterURL string) error {
 		UPDATE
 			moviess
 		SET
-			poster_url = $2
+			poster_url = $2,
+			updated_at = now()
 		WHERE
 			id = $1
 	`, m.ID, m.PosterURL)

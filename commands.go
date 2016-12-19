@@ -7,19 +7,18 @@ import (
 	"strings"
 
 	"github.com/serbe/ncp"
-	"gopkg.in/pg.v4"
 )
 
 var (
 	urls = []string{
 		"/forum/viewforum.php?f=218", // Зарубежные Новинки (HD*Rip/LQ, DVDRip)
-		"/forum/viewforum.php?f=221", // Отечественные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		"/forum/viewforum.php?f=225", // Зарубежные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		"/forum/viewforum.php?f=230", // Отечественные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		"/forum/viewforum.php?f=231", // Зарубежные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		"/forum/viewforum.php?f=270", // Отечественные Новинки (HD*Rip/LQ, DVDRip)
-		"/forum/viewforum.php?f=319", // Зарубежная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		"/forum/viewforum.php?f=320", // Отечественная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		// "/forum/viewforum.php?f=221", // Отечественные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		// "/forum/viewforum.php?f=225", // Зарубежные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		// "/forum/viewforum.php?f=230", // Отечественные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		// "/forum/viewforum.php?f=231", // Зарубежные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		// "/forum/viewforum.php?f=270", // Отечественные Новинки (HD*Rip/LQ, DVDRip)
+		// "/forum/viewforum.php?f=319", // Зарубежная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		// "/forum/viewforum.php?f=320", // Отечественная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
 	}
 )
 
@@ -36,12 +35,17 @@ func (a *App) get() error {
 		}
 		for _, topic := range topics {
 			_, err := a.getTorrentByHref(topic.Href)
-			if err == pg.ErrNoRows {
+			if err != nil {
 				film, err := a.net.ParseTopic(topic)
 				if err == nil {
 					i++
 					film = a.checkName(film)
-					a.createTorrent(film)
+					_, err = a.createTorrent(film)
+					if err != nil {
+						log.Println("createTorrent ", err)
+					}
+				} else {
+					log.Println("ParseTopic ", err)
 				}
 			}
 		}
