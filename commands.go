@@ -171,10 +171,10 @@ func (a *App) poster() error {
 				}
 			}
 		} else {
-			film, err := a.getFilmByMovieID(movie.ID)
+			tor, err := a.getTorrentByMovieID(movie.ID)
 			if err == nil {
 				var topic ncp.Topic
-				topic.Href = film.Href
+				topic.Href = tor.Href
 				tempFilm, err := a.net.ParseTopic(topic)
 				if err == nil {
 					if tempFilm.Poster != "" {

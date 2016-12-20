@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"time"
@@ -9,7 +8,7 @@ import (
 	"github.com/serbe/kpp"
 	"github.com/serbe/ncp"
 
-	"github.com/lib/pq"
+	"gopkg.in/pg.v5"
 )
 
 // Movie all values
@@ -39,12 +38,12 @@ type Movie struct {
 	Name        string    `sql:"name"`
 	EngName     string    `sql:"eng_name"`
 	Year        int       `sql:"year"`
-	Genre       []string  `sql:"genre"`
-	Country     []string  `sql:"country"`
+	Genre       []string  `sql:"genre"        pg:",array"`
+	Country     []string  `sql:"country"      pg:",array"`
 	RawCountry  string    `sql:"raw_country"`
-	Director    []string  `sql:"director"`
-	Producer    []string  `sql:"producer"`
-	Actor       []string  `sql:"actor"`
+	Director    []string  `sql:"director"     pg:",array"`
+	Producer    []string  `sql:"producer"     pg:",array"`
+	Actor       []string  `sql:"actor"        pg:",array"`
 	Description string    `sql:"description"`
 	Age         string    `sql:"age"`
 	ReleaseDate string    `sql:"release_date"`
@@ -105,7 +104,7 @@ type Torrent struct {
 
 // App struct variables
 type App struct {
-	db      *sql.DB
+	db      *pg.DB
 	net     *ncp.NCp
 	hd      string
 	px      string
@@ -122,17 +121,13 @@ func appInit() (*App, error) {
 		if err != nil {
 			log.Fatal("Error getConfig ", err)
 		}
-		options := fmt.Sprintf("user=%s password=%s dbname=%s sslmode=%s",
-			conf.Db.User,
-			conf.Db.Password,
-			conf.Db.Name,
-			conf.Db.Sslmode,
-		)
-		db, err := sql.Open("postgres", options)
-		if err != nil {
-			log.Fatal(err)
+		options := &pg.Options{
+			User:     conf.Db.User,
+			Password: conf.Db.Password,
+			Database: conf.Db.Name,
+			// conf.Db.Sslmode,
 		}
-
+		db := pg.Connect(options)
 		app.db = db
 		err = app.createSchema()
 		if err != nil {
@@ -222,11 +217,7 @@ func (a *App) createSchema() error {
 }
 
 func (a *App) createMovie(ncf ncp.Film) (int64, error) {
-	var (
-		m  Movie
-		id int64
-		kp kpp.KP
-	)
+	var m Movie
 	m.Section = ncf.Section
 	m.Name = ncf.Name
 	m.EngName = ncf.EngName
@@ -249,23 +240,13 @@ func (a *App) createMovie(ncf ncp.Film) (int64, error) {
 	}
 	m.PosterURL = ncf.Poster
 	m.Poster, _ = a.getPoster(m.PosterURL)
-	err = a.db.QueryRow(`
-		INSERT INTO movies
-			(section, name, eng_name, year, genre, country, raw_country, director, producer, actor, description, age, release_date, russian_date, duration, kinopoisk, imdb, poster, poster_url, created_at)
-		VALUES
-			($1,      $2,   $3,       $4,   $5,    $6,      $7,          $8,       $9,       $10,   $11,         $12, $13,          $14,          $15,      $16,       $17,  $18,    $19,        now())
-		RETURNING
-			id
-	`,
-		m.Section, m.Name, m.EngName, m.Year, pq.Array(m.Genre), pq.Array(m.Country), m.RawCountry, pq.Array(m.Director), pq.Array(m.Producer), pq.Array(m.Actor), m.Description, m.Age, m.ReleaseDate, m.RussianDate, m.Duration, m.Kinopoisk, m.IMDb, m.Poster, m.PosterURL,
-	).Scan(&id)
-	return id, err
+	err = a.db.Insert(&m)
+	return m.ID, err
 }
 
 func (a *App) createTorrent(ncf ncp.Film) (int64, error) {
 	var (
 		t   Torrent
-		id  int64
 		err error
 	)
 	t.MovieID, err = a.getMovieID(ncf)
@@ -294,41 +275,31 @@ func (a *App) createTorrent(ncf ncp.Film) (int64, error) {
 	t.Size = ncf.Size
 	t.Seeders = ncf.Seeders
 	t.Leechers = ncf.Leechers
-	err = a.db.QueryRow(`
-		INSERT INTO torrents
-			(movie_id, date_create, href, torrent, magnet, nnm, subtitles_type, subtitles, video, quality, resolution, audio1, audio2, audio3, translation, size, seeders, leechers, created_at)
-		VALUES
-			($1,       $2,          $3,   $4,      $5,     $6,  $7,             $8,        $9,    $10,     $11,        $12,    $13,    $14,    $15,         $16,  $17,     $18,      now())
-		RETURNING
-			id
-	`,
-		t.MovieID, t.DateCreate, t.Href, t.Torrent, t.Magnet, t.NNM, t.SubtitlesType, t.Subtitles, t.Video, t.Quality, t.Resolution, t.Audio1, t.Audio2, t.Audio3, t.Translation, t.Size, t.Seeders, t.Leechers,
-	).Scan(&id)
-	return id, err
+	err = a.db.Insert(&t)
+	return t.ID, err
 }
 
 func (a *App) getMovies() ([]Movie, error) {
-	rows, err := a.db.Query(`SELECT * FROM movies`)
-	if err != nil {
-		return nil, err
-	}
-	return scanMovies(rows)
+	var movies []Movie
+	err := a.db.Model(&movies).Select()
+	return movies, err
 }
 
 func (a *App) getMovieID(ncf ncp.Film) (int64, error) {
 	var id int64
-	err := a.db.QueryRow(`SELECT id FROM movies WHERE UPPER(name) = UPPER($1) AND year = $2`, ncf.Name, ncf.Year).Scan(&id)
+	_, err := a.db.QueryOne(&id, `SELECT id FROM movies WHERE UPPER(name) = UPPER(?) AND year = ?`, ncf.Name, ncf.Year)
 	return id, err
 }
 
 func (a *App) getTorrentByHref(href string) (Torrent, error) {
-	row := a.db.QueryRow(`SELECT * FROM torrents WHERE href = $1`, href)
-	return scanTorrent(row)
+	var t Torrent
+	_, err := a.db.QueryOne(&t, `SELECT * FROM torrents WHERE href = ?`, href)
+	return t, err
 }
 
 func (a *App) updateTorrent(id int64, f ncp.Film) error {
-	row := a.db.QueryRow(`SELECT * FROM torrents WHERE id = $1`, id)
-	t, err := scanTorrent(row)
+	var t Torrent
+	_, err := a.db.QueryOne(&t, `SELECT * FROM torrents WHERE id = ?`, id)
 	if err != nil {
 		return err
 	}
@@ -340,20 +311,20 @@ func (a *App) updateTorrent(id int64, f ncp.Film) error {
 		UPDATE
 			torrents
 		SET
-			nnm = $2,
-			seeders = $3,
-			leechers = $4,
-			torrent = $5,
+			nnm = ?,
+			seeders = ?,
+			leechers = ?,
+			torrent = ?,
 			updated_at = now()
 		WHERE
-			id = $1
+			id = ?
 	`, id, t.NNM, t.Seeders, t.Leechers, t.Torrent)
 	return err
 }
 
 func (a *App) updateName(id int64, name string) error {
-	row := a.db.QueryRow(`SELECT * FROM movies WHERE id = $1`, id)
-	m, err := scanMovie(row)
+	var m Movie
+	_, err := a.db.QueryOne(&m, `SELECT * FROM movies WHERE id = ?`, id)
 	if err != nil {
 		return err
 	}
@@ -362,10 +333,10 @@ func (a *App) updateName(id int64, name string) error {
 		UPDATE
 			moviess
 		SET
-			name = $2,
+			name = ?,
 			updated_at = now()
 		WHERE
-			id = $1
+			id = ?
 	`, id, m.Name)
 	return err
 }
@@ -380,12 +351,12 @@ func (a *App) updateRating(m Movie, kp kpp.KP) error {
 		UPDATE
 			moviess
 		SET
-			kinopoisk = $2,
-			imdb = $3,
-			duration = $4,
+			kinopoisk = ?,
+			imdb = ?,
+			duration = ?,
 			updated_at = now()
 		WHERE
-			id = $1
+			id = ?
 	`, m.ID, m.Kinopoisk, m.IMDb, m.Duration)
 	return err
 }
@@ -396,10 +367,10 @@ func (a *App) updatePoster(m Movie, poster string) error {
 		UPDATE
 			moviess
 		SET
-			poster = $2,
+			poster = ?,
 			updated_at = now()
 		WHERE
-			id = $1
+			id = ?
 	`, m.ID, m.Poster)
 	return err
 }
@@ -410,28 +381,23 @@ func (a *App) updatePosterURL(m Movie, posterURL string) error {
 		UPDATE
 			moviess
 		SET
-			poster_url = $2,
+			poster_url = ?,
 			updated_at = now()
 		WHERE
-			id = $1
+			id = ?
 	`, m.ID, m.PosterURL)
 	return err
 }
 
 func (a *App) getWithDownload() ([]Torrent, error) {
-	rows, err := a.db.Query(`SELECT * FROM torrents WHERE magnet != ''`)
-	if err != nil {
-		return nil, err
-	}
-	return scanTorrents(rows)
+	var torrents []Torrent
+	_, err := a.db.Query(&torrents, `SELECT * FROM torrents WHERE magnet != ''`)
+	return torrents, err
 }
 
 func (a *App) getMovieName(ncf ncp.Film) (string, error) {
-	rows, err := a.db.Query(`SELECT * FROM movies WHERE UPPER(name) = UPPER($1) and year = $2"`, ncf.Name, ncf.Year)
-	if err != nil {
-		return "", err
-	}
-	movies, err := scanMovies(rows)
+	var movies []Movie
+	_, err := a.db.Query(&movies, `SELECT * FROM movies WHERE UPPER(name) = UPPER(?) and year = ?"`, ncf.Name, ncf.Year)
 	if err != nil {
 		return "", err
 	}
@@ -443,16 +409,14 @@ func (a *App) getMovieName(ncf ncp.Film) (string, error) {
 
 func (a *App) getUpperName(m Movie) (string, error) {
 	var s string
-	err := a.db.QueryRow(`SELECT name FROM movies WHERE UPPER(name) = UPPER($1) and year = $2 and name != UPPER($1)`, m.Name, m.Year).Scan(&s)
+	_, err := a.db.QueryOne(&s, `SELECT name FROM movies WHERE UPPER(name) = UPPER(?) and year = ? and name != UPPER(?)`, m.Name, m.Year)
 	return s, err
 }
 
 func (a *App) getNoRating() ([]Movie, error) {
-	rows, err := a.db.Query(`SELECT * FROM movies WHERE kinopoisk = 0 OR imdb = 0`)
-	if err != nil {
-		return nil, err
-	}
-	return scanMovies(rows)
+	var movies []Movie
+	_, err := a.db.Query(&movies, `SELECT * FROM movies WHERE kinopoisk = 0 OR imdb = 0`)
+	return movies, err
 }
 
 func (a *App) getRating(movie Movie) (kpp.KP, error) {
@@ -467,7 +431,8 @@ func (a *App) getRating(movie Movie) (kpp.KP, error) {
 	return kp, nil
 }
 
-func (a *App) getFilmByMovieID(id int64) (Torrent, error) {
-	row := a.db.QueryRow(`SELECT * FROM torrents WHERE movie_id = $1`, id)
-	return scanTorrent(row)
+func (a *App) getTorrentByMovieID(id int64) (Torrent, error) {
+	var t Torrent
+	_, err := a.db.QueryOne(&t, `SELECT * FROM torrents WHERE movie_id = ?`, id)
+	return t, err
 }
