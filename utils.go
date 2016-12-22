@@ -3,15 +3,15 @@ package main
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"image"
 	"image/jpeg"
-	"image/png"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 	"time"
+
+	_ "image/png"
 
 	"github.com/nfnt/resize"
 	"github.com/serbe/ncp"
@@ -92,22 +92,9 @@ func getFromURL(url string) ([]byte, error) {
 
 func decodeImage(url string, body []byte) (image.Image, error) {
 	var img image.Image
-	ext := url[len(url)-3:]
-	if ext == "jpg" {
-		img, err := jpeg.Decode(bytes.NewReader(body))
-		if err != nil {
-			return img, err
-		}
-	} else if ext == "png" {
-		img, err := png.Decode(bytes.NewReader(body))
-		if err != nil {
-			return img, err
-		}
-	} else {
-		return img, fmt.Errorf("Not supportet extension")
-	}
-	if img == nil {
-		return nil, fmt.Errorf("img is nil")
+	img, _, err := image.Decode(bytes.NewReader(body))
+	if err != nil {
+		return img, err
 	}
 	n := resize.Resize(150, 0, img, resize.Lanczos3)
 	return n, nil
