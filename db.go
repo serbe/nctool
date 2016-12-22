@@ -318,7 +318,7 @@ func (a *App) updateTorrent(id int64, f ncp.Film) error {
 			updated_at = now()
 		WHERE
 			id = ?
-	`, id, t.NNM, t.Seeders, t.Leechers, t.Torrent)
+	`, t.NNM, t.Seeders, t.Leechers, t.Torrent, id)
 	return err
 }
 
@@ -331,13 +331,13 @@ func (a *App) updateName(id int64, name string) error {
 	m.Name = name
 	_, err = a.db.Exec(`
 		UPDATE
-			moviess
+			movies
 		SET
 			name = ?,
 			updated_at = now()
 		WHERE
 			id = ?
-	`, id, m.Name)
+	`, m.Name, id)
 	return err
 }
 
@@ -349,7 +349,7 @@ func (a *App) updateRating(m Movie, kp kpp.KP) error {
 	}
 	_, err := a.db.Exec(`
 		UPDATE
-			moviess
+			movies
 		SET
 			kinopoisk = ?,
 			imdb = ?,
@@ -357,7 +357,7 @@ func (a *App) updateRating(m Movie, kp kpp.KP) error {
 			updated_at = now()
 		WHERE
 			id = ?
-	`, m.ID, m.Kinopoisk, m.IMDb, m.Duration)
+	`, m.Kinopoisk, m.IMDb, m.Duration, m.ID)
 	return err
 }
 
@@ -365,13 +365,13 @@ func (a *App) updatePoster(m Movie, poster string) error {
 	m.Poster = poster
 	_, err := a.db.Exec(`
 		UPDATE
-			moviess
+			movies
 		SET
 			poster = ?,
 			updated_at = now()
 		WHERE
 			id = ?
-	`, m.ID, m.Poster)
+	`, m.Poster, m.ID)
 	return err
 }
 
@@ -379,13 +379,13 @@ func (a *App) updatePosterURL(m Movie, posterURL string) error {
 	m.PosterURL = posterURL
 	_, err := a.db.Exec(`
 		UPDATE
-			moviess
+			movies
 		SET
 			poster_url = ?,
 			updated_at = now()
 		WHERE
 			id = ?
-	`, m.ID, m.PosterURL)
+	`, m.PosterURL, m.ID)
 	return err
 }
 
@@ -409,7 +409,7 @@ func (a *App) getMovieName(ncf ncp.Film) (string, error) {
 
 func (a *App) getUpperName(m Movie) (string, error) {
 	var s string
-	_, err := a.db.QueryOne(&s, `SELECT name FROM movies WHERE UPPER(name) = UPPER(?) and year = ? and name != UPPER(?)`, m.Name, m.Year)
+	_, err := a.db.QueryOne(&s, `SELECT name FROM movies WHERE UPPER(name) = UPPER(?) and year = ? and name != UPPER(?)`, m.Name, m.Year, m.Name)
 	return s, err
 }
 
