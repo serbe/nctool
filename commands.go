@@ -158,7 +158,12 @@ func (a *App) poster() error {
 					poster, err := a.getPoster(movie.PosterURL)
 					if err == nil {
 						i++
-						_ = a.updatePoster(movie, poster)
+						err = a.updatePoster(movie, poster)
+						if err != nil {
+							log.Println("updatePoster ", poster, err)
+						}
+					} else {
+						log.Println("getPoster ", poster, err)
 					}
 				} else {
 					files = deleteFromSlice(files, movie.Poster)
