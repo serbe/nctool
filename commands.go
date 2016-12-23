@@ -12,13 +12,13 @@ import (
 var (
 	urls = []string{
 		"/forum/viewforum.php?f=218", // Зарубежные Новинки (HD*Rip/LQ, DVDRip)
-		// "/forum/viewforum.php?f=221", // Отечественные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		// "/forum/viewforum.php?f=225", // Зарубежные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		// "/forum/viewforum.php?f=230", // Отечественные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		// "/forum/viewforum.php?f=231", // Зарубежные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		// "/forum/viewforum.php?f=270", // Отечественные Новинки (HD*Rip/LQ, DVDRip)
-		// "/forum/viewforum.php?f=319", // Зарубежная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
-		// "/forum/viewforum.php?f=320", // Отечественная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=221", // Отечественные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=225", // Зарубежные Фильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=230", // Отечественные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=231", // Зарубежные Мультфильмы (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=270", // Отечественные Новинки (HD*Rip/LQ, DVDRip)
+		"/forum/viewforum.php?f=319", // Зарубежная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
+		"/forum/viewforum.php?f=320", // Отечественная Классика (HD*Rip/LQ, DVDRip, SATRip, VHSRip)
 	}
 )
 
