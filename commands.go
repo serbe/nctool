@@ -37,12 +37,16 @@ func (a *App) get() error {
 			_, err := a.getTorrentByHref(topic.Href)
 			if err != nil {
 				film, err := a.net.ParseTopic(topic)
-				if err == nil && film.Description == "" {
-					i++
-					film = a.checkName(film)
-					_, err = a.createTorrent(film)
-					if err != nil {
-						log.Println("createTorrent ", err)
+				if err == nil {
+					if film.Description != "" {
+						i++
+						film = a.checkName(film)
+						_, err = a.createTorrent(film)
+						if err != nil {
+							log.Println("createTorrent ", err)
+						}
+					} else {
+						log.Println("empty Description ", film.Href)
 					}
 				} else {
 					log.Println("ParseTopic ", err)
