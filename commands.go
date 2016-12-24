@@ -37,7 +37,7 @@ func (a *App) get() error {
 			_, err := a.getTorrentByHref(topic.Href)
 			if err != nil {
 				film, err := a.net.ParseTopic(topic)
-				if err == nil {
+				if err == nil && film.Description == "" {
 					i++
 					film = a.checkName(film)
 					_, err = a.createTorrent(film)
