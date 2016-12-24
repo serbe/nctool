@@ -105,7 +105,7 @@ type Torrent struct {
 // App struct variables
 type App struct {
 	db      *pg.DB
-	net     *ncp.NCp
+	net     *ncp.NC
 	hd      string
 	px      string
 	debug   bool
