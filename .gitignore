@@ -29,3 +29,4 @@ nctool
 debug
 acc.gb
 ./nctool
+debug.*
