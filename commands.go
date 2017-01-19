@@ -131,8 +131,13 @@ func (a *App) rating() error {
 			if err == nil {
 				i++
 				_ = a.updateRating(movie, kp)
+				if a.debug {
+					log.Println(movie.Name, movie.EngName, movie.Year)
+					log.Println(kp)
+				}
 			} else {
 				if a.debug {
+					log.Println(movie.Name, movie.EngName, movie.Year)
 					log.Println("updateRating: ", err)
 				}
 			}
