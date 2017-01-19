@@ -413,9 +413,9 @@ func (a *App) getUpperName(m Movie) (string, error) {
 	return s, err
 }
 
-func (a *App) getNoRating() ([]Movie, error) {
+func (a *App) getNoRatingMovies() ([]Movie, error) {
 	var movies []Movie
-	_, err := a.db.Query(&movies, `SELECT * FROM movies WHERE kinopoisk = 0 OR imdb = 0`)
+	_, err := a.db.Query(&movies, `SELECT * FROM movies WHERE kinopoisk IS NULL OR imdb IS NULL`)
 	return movies, err
 }
 

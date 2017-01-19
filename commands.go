@@ -121,7 +121,7 @@ func (a *App) rating() error {
 	var (
 		i int
 	)
-	movies, err := a.getNoRating()
+	movies, err := a.getNoRatingMovies()
 	if err != nil {
 		return err
 	}
@@ -131,6 +131,10 @@ func (a *App) rating() error {
 			if err == nil {
 				i++
 				_ = a.updateRating(movie, kp)
+			} else {
+				if a.debug {
+					log.Println("updateRating: ", err)
+				}
 			}
 		}
 	}
