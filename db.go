@@ -251,7 +251,8 @@ func (a *App) createTorrent(ncf ncp.Film) (int64, error) {
 	)
 	t.MovieID, err = a.getMovieID(ncf)
 	if err != nil {
-		movieID, err := a.createMovie(ncf)
+		var movieID int64
+		movieID, err = a.createMovie(ncf)
 		if err != nil {
 			log.Println("createMovie ", err)
 			return 0, err

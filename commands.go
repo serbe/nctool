@@ -24,17 +24,18 @@ var (
 
 func (a *App) get() error {
 	var (
-		err error
-		i   int
+		err    error
+		i      int
+		topics []ncp.Topic
 	)
 	for _, parseurl := range urls {
-		topics, err := a.net.ParseForumTree(parseurl)
+		topics, err = a.net.ParseForumTree(parseurl)
 		if err != nil {
 			log.Println("ParseForumTree ", parseurl, err)
 			return err
 		}
 		for _, topic := range topics {
-			_, err := a.getTorrentByHref(topic.Href)
+			_, err = a.getTorrentByHref(topic.Href)
 			if err != nil {
 				film, err := a.net.ParseTopic(topic)
 				if err == nil {

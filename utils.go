@@ -45,16 +45,16 @@ func getConfig() (config, error) {
 	return c, err
 }
 
-func contain(args []string, str string) bool {
-	result := false
-	for _, item := range args {
-		if item == str {
-			result = true
-			return result
-		}
-	}
-	return result
-}
+// func contain(args []string, str string) bool {
+// 	result := false
+// 	for _, item := range args {
+// 		if item == str {
+// 			result = true
+// 			return result
+// 		}
+// 	}
+// 	return result
+// }
 
 func exit(err error) {
 	if err == nil {
@@ -77,7 +77,7 @@ func (a *App) checkName(ncf ncp.Film) ncp.Film {
 }
 
 func getFromURL(url string) ([]byte, error) {
-	timeout := time.Duration(5 * time.Second)
+	timeout := time.Duration(5) * time.Second
 	client := http.Client{
 		Timeout: timeout,
 	}
@@ -158,7 +158,7 @@ func deleteFromSlice(list []string, s string) []string {
 }
 
 func createDir(path string) error {
-	if existsFile(path) == true {
+	if existsFile(path) {
 		return nil
 	}
 	return os.Mkdir(path, 0777)
