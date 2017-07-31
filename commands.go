@@ -37,7 +37,8 @@ func (a *App) get() error {
 		for _, topic := range topics {
 			_, err = a.getTorrentByHref(topic.Href)
 			if err != nil {
-				film, err := a.net.ParseTopic(topic)
+				var film ncp.Film
+				film, err = a.net.ParseTopic(topic)
 				if err == nil {
 					if film.Description != "" {
 						i++
@@ -81,7 +82,7 @@ func (a *App) update() error {
 		if err == nil {
 			if f.NNM != tor.NNM || f.Seeders != tor.Seeders || f.Leechers != tor.Leechers || f.Torrent != tor.Torrent {
 				i++
-				a.updateTorrent(tor.ID, f)
+				_ = a.updateTorrent(tor.ID, f)
 			}
 		} else {
 			return err
@@ -106,7 +107,7 @@ func (a *App) name() error {
 			lowerName, err := a.getUpperName(movie)
 			if err == nil {
 				i++
-				a.updateName(movie.ID, lowerName)
+				_ = a.updateName(movie.ID, lowerName)
 			}
 		}
 	}

@@ -5,10 +5,9 @@ import (
 	"log"
 	"time"
 
+	"github.com/go-pg/pg"
 	"github.com/serbe/kpp"
 	"github.com/serbe/ncp"
-
-	"gopkg.in/pg.v5"
 )
 
 // Movie all values

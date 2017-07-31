@@ -26,7 +26,7 @@ type config struct {
 		User     string `json:"user"`
 		Password string `json:"password"`
 		Name     string `json:"name"`
-		Sslmode  string `json:"sslmode"`
+		// Sslmode  string `json:"sslmode"`
 	} `json:"postgresql"`
 	Address string `json:"address"`
 	ImgDir  string `json:"imgdir"`
@@ -85,8 +85,8 @@ func getFromURL(url string) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
+	err = resp.Body.Close()
 	return body, err
 }
 
@@ -126,9 +126,9 @@ func (a *App) getPoster(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer out.Close()
-	jpeg.Encode(out, img, nil)
-	return posterName, nil
+	err = jpeg.Encode(out, img, nil)
+	_ = out.Close()
+	return posterName, err
 }
 
 func existsFile(path string) bool {
