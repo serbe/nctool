@@ -93,7 +93,7 @@ func getFromURL(url string) ([]byte, error) {
 	return body, err
 }
 
-func decodeImage(url string, body []byte) (image.Image, error) {
+func decodeImage(body []byte) (image.Image, error) {
 	var img image.Image
 	img, _, err := image.Decode(bytes.NewReader(body))
 	if err != nil {
@@ -120,7 +120,7 @@ func (a *App) getPoster(url string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	img, err := decodeImage(url, body)
+	img, err := decodeImage(body)
 	if err != nil {
 		return "", err
 	}
@@ -164,5 +164,5 @@ func createDir(path string) error {
 	if existsFile(path) {
 		return nil
 	}
-	return os.Mkdir(path, 0777)
+	return os.Mkdir(path, 0700)
 }
